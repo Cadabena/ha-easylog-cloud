@@ -1,110 +1,99 @@
-"""
-Custom integration to integrate Home Assistant EasyLog Cloud with Home Assistant.
-
-For more details about this integration, please refer to
-https://github.com/Cadabena/ha-easylog-cloud
-"""
 import asyncio
 import logging
-from datetime import timedelta
+import re
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Config
+import aiohttp
+from bs4 import BeautifulSoup
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import HAEasylogCloudApiClient
-from .const import CONF_PASSWORD
-from .const import CONF_USERNAME
 from .const import DOMAIN
-from .const import PLATFORMS
-from .const import STARTUP_MESSAGE
 
-SCAN_INTERVAL = timedelta(seconds=30)
+_LOGGER = logging.getLogger(__name__)
 
-_LOGGER: logging.Logger = logging.getLogger(__package__)
+LOGIN_URL = "https://www.easylogcloud.com/"
 
+def parse_devicesArr_from_html(html):
+    """Extract sensor data from the devicesArr JavaScript."""
+    match = re.search(r"var\s+devicesArr\s*=\s*(\[.*?\]);", html, re.DOTALL)
+    if not match:
+        _LOGGER.error("devicesArr not found in HTML")
+        return []
 
-async def async_setup(hass: HomeAssistant, config: Config):
-    """Set up this integration using YAML is not supported."""
-    return True
+    devices_js = match.group(1)
+    channels_blocks = re.findall(r"Channel\((.*?)\)", devices_js, re.DOTALL)
+    devices = []
 
+    for i, raw in enumerate(channels_blocks):
+        parts = re.findall(r"'[^']*'|[^,]+", raw.strip())
+        if len(parts) < 16:
+            continue
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up this integration using UI."""
-    if hass.data.get(DOMAIN) is None:
-        hass.data.setdefault(DOMAIN, {})
-        _LOGGER.info(STARTUP_MESSAGE)
+        name = parts[2].strip().strip("'")
+        value = parts[14].strip().strip("'")
+        unit = parts[15].strip().strip("'")
 
-    username = entry.data.get(CONF_USERNAME)
-    password = entry.data.get(CONF_PASSWORD)
+        # group sensors by device every 3 channels
+        if i % 3 == 0:
+            devices.append({})
+        sensor_type = name.lower()
+        devices[-1]["name"] = f"EasyLog Device {i//3 + 1}"
+        devices[-1][sensor_type] = float(value) if value.replace('.', '', 1).isdigit() else value
 
-    session = async_get_clientsession(hass)
-    client = HAEasylogCloudApiClient(username, password, session)
+    for i, d in enumerate(devices):
+        d["id"] = f"device_{i}"
 
-    coordinator = HAEasylogCloudDataUpdateCoordinator(hass, client=client)
-    await coordinator.async_refresh()
+    return devices
 
-    if not coordinator.last_update_success:
-        raise ConfigEntryNotReady
+class EasylogCloudClient:
+    def __init__(self, email, password, session: aiohttp.ClientSession):
+        self._email = email
+        self._password = password
+        self._session = session
 
-    hass.data[DOMAIN][entry.entry_id] = coordinator
+    async def login_and_get_dashboard(self):
+        async with self._session.get(LOGIN_URL) as resp:
+            text = await resp.text()
+        soup = BeautifulSoup(text, "html.parser")
 
-    for platform in PLATFORMS:
-        if entry.options.get(platform, True):
-            coordinator.platforms.append(platform)
-            hass.async_add_job(
-                hass.config_entries.async_forward_entry_setup(entry, platform)
-            )
+        def val(name):
+            el = soup.find("input", {"name": name})
+            return el["value"] if el else ""
 
-    entry.add_update_listener(async_reload_entry)
-    return True
+        payload = {
+            "__EVENTTARGET": "ctl00$cph1$signin",
+            "__EVENTARGUMENT": "",
+            "__VIEWSTATE": val("__VIEWSTATE"),
+            "__VIEWSTATEGENERATOR": val("__VIEWSTATEGENERATOR"),
+            "__EVENTVALIDATION": val("__EVENTVALIDATION"),
+            "ctl00$cph1$username1": self._email,
+            "ctl00$cph1$password": self._password,
+            "ctl00$cph1$fromcookie": "false",
+            "ctl00$cph1$rememberme": "on",
+        }
 
+        async with self._session.post(LOGIN_URL, data=payload) as resp:
+            html = await resp.text()
+            if "devicesArr" not in html:
+                raise Exception("Login failed or device data not found.")
+            return html
 
-class HAEasylogCloudDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching data from the API."""
+    async def get_devices(self):
+        html = await self.login_and_get_dashboard()
+        return parse_devicesArr_from_html(html)
 
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        client: HAEasylogCloudApiClient,
-    ) -> None:
-        """Initialize."""
-        self.api = client
-        self.platforms = []
-
-        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
+class EasylogCloudCoordinator(DataUpdateCoordinator):
+    def __init__(self, hass: HomeAssistant, email, password, session):
+        self.client = EasylogCloudClient(email, password, session)
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="EasyLog Cloud",
+            update_interval=asyncio.timedelta(minutes=5),
+        )
 
     async def _async_update_data(self):
-        """Update data via library."""
         try:
-            return await self.api.async_get_data()
-        except Exception as exception:
-            raise UpdateFailed() from exception
-
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Handle removal of an entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    unloaded = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(entry, platform)
-                for platform in PLATFORMS
-                if platform in coordinator.platforms
-            ]
-        )
-    )
-    if unloaded:
-        hass.data[DOMAIN].pop(entry.entry_id)
-
-    return unloaded
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+            return await self.client.get_devices()
+        except Exception as err:
+            raise UpdateFailed(f"Error fetching data: {err}")

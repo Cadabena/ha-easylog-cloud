@@ -1,41 +1,30 @@
-"""Constants for Home Assistant EasyLog Cloud."""
-# Base component constants
-NAME = "Home Assistant EasyLog Cloud"
-DOMAIN = "ha-easylog-cloud"
-DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.0.1"
-
-ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
-ISSUE_URL = "https://github.com/Cadabena/ha-easylog-cloud/issues"
-
-# Icons
-ICON = "mdi:format-quote-close"
-
-# Device classes
-BINARY_SENSOR_DEVICE_CLASS = "connectivity"
-
-# Platforms
-BINARY_SENSOR = "binary_sensor"
-SENSOR = "sensor"
-SWITCH = "switch"
-PLATFORMS = [BINARY_SENSOR, SENSOR, SWITCH]
-
-
-# Configuration and options
-CONF_ENABLED = "enabled"
-CONF_USERNAME = "username"
+DOMAIN = "home_assistant_easylog_cloud"
+CONF_USERNAME = "email"
 CONF_PASSWORD = "password"
+PLATFORMS = ["sensor"]
+STARTUP_MESSAGE = "Starting Home Assistant EasyLog Cloud integration"
 
-# Defaults
-DEFAULT_NAME = DOMAIN
 
+# config_flow.py
+import voluptuous as vol
+from homeassistant import config_entries
+from homeassistant.data_entry_flow import FlowResult
+from .const import DOMAIN, CONF_USERNAME, CONF_PASSWORD
 
-STARTUP_MESSAGE = f"""
--------------------------------------------------------------------
-{NAME}
-Version: {VERSION}
-This is a custom integration!
-If you have any issues with this you need to open an issue here:
-{ISSUE_URL}
--------------------------------------------------------------------
-"""
+class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    VERSION = 1
+
+    async def async_step_user(self, user_input=None) -> FlowResult:
+        errors = {}
+
+        if user_input is not None:
+            return self.async_create_entry(title="EasyLog Cloud", data=user_input)
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema({
+                vol.Required(CONF_USERNAME): str,
+                vol.Required(CONF_PASSWORD): str,
+            }),
+            errors=errors,
+        )
