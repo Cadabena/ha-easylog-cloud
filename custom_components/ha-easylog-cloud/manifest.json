@@ -1,0 +1,10 @@
+{
+  "domain": "ha-easylog-cloud",
+  "name": "Home Assistant EasyLog Cloud",
+  "documentation": "https://github.com/Cadabena/ha-easylog-cloud",
+  "issue_tracker": "https://github.com/Cadabena/ha-easylog-cloud/issues",
+  "dependencies": [],
+  "config_flow": true,
+  "codeowners": ["@Cadabena"],
+  "requirements": []
+}
