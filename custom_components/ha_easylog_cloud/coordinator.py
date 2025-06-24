@@ -1,113 +1,127 @@
+from __future__ import annotations
+
 import logging
 import re
-from datetime import timedelta
-
-import aiohttp
 from bs4 import BeautifulSoup
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-LOGIN_URL = "https://www.easylogcloud.com/"
-
-def parse_devicesArr_from_html(html_text):
-    # 1. Try to find the devicesArr JavaScript array using more lenient matching
-    match = re.search(r"devicesArr\s*=\s*(\[\s*new Device\(.*?\)\]);", html_text, re.DOTALL)
-    if not match:
-        _LOGGER.error("devicesArr not found in HTML")
-        return []
-
-    devices_js = match.group(1)
-
-    # 2. Find all Channel(...) blocks inside the Device definition
-    channel_blocks = re.findall(r"Channel\(([^)]+)\)", devices_js)
-    if not channel_blocks:
-        _LOGGER.error("No Channel() blocks found in devicesArr")
-        return []
-
-    # 3. Group channels into devices (every 3 Channel(...) per device)
-    devices = []
-    for i in range(0, len(channel_blocks), 3):
-        dev = {"id": f"device_{i//3 + 1}", "name": f"EasyLog Device {i//3 + 1}"}
-        for ch in channel_blocks[i:i+3]:
-            fields = [s.strip().strip("'") for s in re.split(r",(?![^(]*\))", ch)]
-            if len(fields) < 16:
-                continue
-            sensor_name = fields[2].lower()
-            value = fields[14]
-            try:
-                value = float(value)
-            except ValueError:
-                pass
-            dev[sensor_name] = value
-        devices.append(dev)
-
-    return devices
-
-class EasylogCloudClient:
-    def __init__(self, email, password, session: aiohttp.ClientSession):
-        self._email = email
-        self._password = password
-        self._session = session
-        self.display_name = None
-
-    async def login_and_get_dashboard(self):
-        async with self._session.get(LOGIN_URL) as resp:
-            text = await resp.text()
-
-        soup = BeautifulSoup(text, "html.parser")
-
-        # Get login form tokens
-        def val(name):
-            el = soup.find("input", {"name": name})
-            return el["value"] if el else ""
-
-        payload = {
-            "__EVENTTARGET": "ctl00$cph1$signin",
-            "__EVENTARGUMENT": "",
-            "__VIEWSTATE": val("__VIEWSTATE"),
-            "__VIEWSTATEGENERATOR": val("__VIEWSTATEGENERATOR"),
-            "__EVENTVALIDATION": val("__EVENTVALIDATION"),
-            "ctl00$cph1$username1": self._email,
-            "ctl00$cph1$password": self._password,
-            "ctl00$cph1$fromcookie": "false",
-            "ctl00$cph1$rememberme": "on",
-        }
-
-        async with self._session.post(LOGIN_URL, data=payload) as resp:
-            html = await resp.text()
-
-        if "devicesArr" not in html:
-            raise Exception("Login failed or device data not found.")
-
-        # Extract display name
-        soup = BeautifulSoup(html, "html.parser")
-        username_span = soup.find("span", {"id": "username"})
-        self.display_name = username_span.text.strip() if username_span else self._email
-
-        return html
-
-    async def get_devices(self):
-        html = await self.login_and_get_dashboard()
-        return parse_devicesArr_from_html(html)
-
 class EasylogCloudCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass: HomeAssistant, email, password, session):
-        self.client = EasylogCloudClient(email, password, session)
+    def __init__(self, hass: HomeAssistant, username: str, password: str) -> None:
         super().__init__(
             hass,
             _LOGGER,
-            name="ha_easylog_cloud",
-            update_interval=timedelta(minutes=1),
+            name=DOMAIN,
+            update_interval=None,
         )
+        self._username = username
+        self._password = password
+        self._session = async_get_clientsession(hass)
+        self._cookies = None
+        self.account_name = None
 
     async def _async_update_data(self):
         try:
-            data = await self.client.get_devices()
-            _LOGGER.debug("Fetched data: %s", data)
-            return data
-        except Exception as err:
-            raise UpdateFailed(f"Error fetching data: {err}")
+            await self.authenticate()
+            html = await self.fetch_devices_page()
+            devices_js = self._extract_devices_arr_from_html(html)
+            devices = self._extract_device_data(devices_js, html)
+            _LOGGER.debug("Parsed devices: %s", devices)
+            return devices
+        except Exception as e:
+            _LOGGER.error("Failed to fetch device data: %s", e)
+            return []
+
+    async def authenticate(self):
+        login_url = "https://www.easylogcloud.com/"
+        response = await self._session.get(login_url)
+        html = await response.text()
+        soup = BeautifulSoup(html, "html.parser")
+
+        viewstate = soup.find("input", {"name": "__VIEWSTATE"})["value"]
+        viewstategen = soup.find("input", {"name": "__VIEWSTATEGENERATOR"})["value"]
+
+        payload = {
+            "__VIEWSTATE": viewstate,
+            "__VIEWSTATEGENERATOR": viewstategen,
+            "ctl00$cph1$username1": self._username,
+            "ctl00$cph1$password": self._password,
+            "ctl00$cph1$rememberme": "on",
+            "ctl00$cph1$signin": "Sign In",
+        }
+
+        post_resp = await self._session.post(login_url, data=payload)
+        self._cookies = post_resp.cookies
+        _LOGGER.debug("Login status: %s", post_resp.status)
+
+    async def fetch_devices_page(self):
+        url = "https://www.easylogcloud.com/devices.aspx"
+        response = await self._session.get(url, cookies=self._cookies)
+        html = await response.text()
+        return html
+
+    def _extract_devices_arr_from_html(self, html: str) -> str:
+        match = re.search(r"var devicesArr = \[(.*?)\];", html, re.DOTALL)
+        if not match:
+            _LOGGER.error("devicesArr not found in HTML")
+            _LOGGER.debug("Full HTML: %s", html[:5000])
+            return ""
+        return match.group(1)
+
+    def _extract_device_data(self, devices_js: str, html: str):
+        devices = []
+        # Match full Device blocks, including Channel arrays
+        device_blocks = re.findall(r"new Device\((.*?\[.*?new Channel.*?\])\s*,\s*\[\],-1,false,\d+,\d+\)", devices_js, re.DOTALL)
+
+        for block in device_blocks:
+            # Split the block only up to the start of the channel array
+            parts = re.split(r",\s*\[new Channel", block, maxsplit=1)
+            device_fields = re.split(r"(?<!\\),", parts[0], maxsplit=50)
+            channel_part = "[new Channel" + parts[1]
+
+            try:
+                device_id = int(device_fields[0].strip())
+                model = device_fields[2].strip("' ")
+                name = device_fields[4].strip("' ")
+            except (IndexError, ValueError) as e:
+                _LOGGER.warning("Failed to parse device fields: %s", e)
+                continue
+
+            device_data = {
+                "id": device_id,
+                "name": name,
+                "model": model,
+            }
+
+            channels = re.findall(r"new Channel\((.*?)\)", channel_part, re.DOTALL)
+            for chan in channels:
+                chan_fields = re.split(r"(?<!\\),", chan)
+                if len(chan_fields) < 16:
+                    continue
+                label = chan_fields[2].strip("' ")
+                value = chan_fields[14].strip("' ")
+                unit = chan_fields[15].strip("' ")
+                _LOGGER.debug("Device %s: Channel %s = %s %s", name, label, value, unit)
+
+                device_data[label] = {
+                    "value": value,
+                    "unit": unit,
+                }
+
+            _LOGGER.debug("Final device object: %s", device_data)
+            devices.append(device_data)
+
+        # Extract account name from HTML
+        soup = BeautifulSoup(html, "html.parser")
+        username_span = soup.find("span", {"id": "username"})
+        if username_span:
+            self.account_name = username_span.text.strip()
+            _LOGGER.debug("Extracted account name: %s", self.account_name)
+
+        return devices
+
