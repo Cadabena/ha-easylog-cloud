@@ -25,7 +25,7 @@ please look at the [User Guide in the Cookiecutter documentation](https://cookie
 | `sensor`        | Show info from Home Assistant EasyLog Cloud API. |
 | `switch`        | Switch something `True` or `False`.                                       |
 
-![example][easylogcloudimg]
+![easylogcloud][easylogcloud.jpg]
 
 ## Installation
 
