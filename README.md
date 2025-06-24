@@ -25,7 +25,7 @@ please look at the [User Guide in the Cookiecutter documentation](https://cookie
 | `sensor`        | Show info from Home Assistant EasyLog Cloud API. |
 | `switch`        | Switch something `True` or `False`.                                       |
 
-![example][exampleimg]
+![example][easylogcloudimg]
 
 ## Installation
 
@@ -92,5 +92,5 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [pre-commit]: https://github.com/pre-commit/pre-commit
 [pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/Cadabena/ha-easylog-cloud.svg?style=for-the-badge
-[releases]: https://github.com/Cadabena/ha-easylog-cloud/releases
-[user_profile]: https://github.com/Cadabena
+[releases]: https://gitlab.com/Cadabena/ha-easylog-cloud/releases
+[user_profile]: https://gitlab.com/Cadabena
