@@ -6,11 +6,11 @@
 [![hacs][hacsbadge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-Monitor indoor environmental conditions using Lascar Electronics EasyLog Cloud devices, such as:
+Monitor indoor environmental conditions using [Lascar Electronics](https://lascarelectronics.com/) EL-MOTE and EL-WiFi [EasyLog Cloud](https://lascarelectronics.com/software/easylog-software/easylog-cloud/) devices, such as:
 - EL-IOT-CO2
 - EL-WEM+
 
-This integration pulls data from [easylogcloud.com](https://easylogcloud.com) via web scraping every minute and presents it in Home Assistant.
+This integration pulls data from [EasyLog Cloud](https://easylogcloud.com) via web scraping every minute and presents it in Home Assistant.
 
 ## Features
 
