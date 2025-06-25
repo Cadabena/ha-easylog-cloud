@@ -35,9 +35,14 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{device['id']}_{label.lower().replace(' ', '_')}"
         self._attr_device_class = self._guess_device_class(label)
 
-        self._attr_native_unit_of_measurement = (
-            data.get("unit") if isinstance(data, dict) and self._attr_device_class else None
-        )
+        # Fix humidity unit: replace %RH with % (required by HA)
+        raw_unit = data.get("unit") if isinstance(data, dict) else None
+        if self._attr_device_class == SensorDeviceClass.HUMIDITY and raw_unit == "%RH":
+            self._attr_native_unit_of_measurement = "%"
+        elif self._attr_device_class:
+            self._attr_native_unit_of_measurement = raw_unit
+        else:
+            self._attr_native_unit_of_measurement = None
 
         if label.lower() in ["firmware version", "mac address", "ssid", "wi-fi signal", "wifi signal"]:
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
