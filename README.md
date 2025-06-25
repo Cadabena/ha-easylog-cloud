@@ -3,73 +3,57 @@
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
-
-[![pre-commit][pre-commit-shield]][pre-commit]
-[![Black][black-shield]][black]
-
 [![hacs][hacsbadge]][hacs]
-[![Project Maintenance][maintenance-shield]][user_profile]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-[![Discord][discord-shield]][discord]
-[![Community Forum][forum-shield]][forum]
+Monitor indoor environmental conditions using Lascar Electronics EasyLog Cloud devices, such as:
+- EL-IOT-CO2
+- EL-WEM+
 
-**TO BE REMOVED: If you need help, as a developer, to use this custom component tempalte,
-please look at the [User Guide in the Cookiecutter documentation](https://cookiecutter-homeassistant-custom-component.readthedocs.io/en/stable/quickstart.html)**
+This integration pulls data from [easylogcloud.com](https://easylogcloud.com) via web scraping every minute and presents it in Home Assistant.
 
-**This component will set up the following platforms.**
+## Features
 
-| Platform        | Description                                                               |
-| --------------- | ------------------------------------------------------------------------- |
-| `binary_sensor` | Show something `True` or `False`.                                         |
-| `sensor`        | Show info from Home Assistant EasyLog Cloud API. |
-| `switch`        | Switch something `True` or `False`.                                       |
+- Automatically discovers and lists all linked EasyLog Cloud devices
+- Exposes sensors like temperature, humidity, CO₂, VOC, particulates, air quality, and pressure
+- Adds diagnostic sensors: WiFi signal, MAC address, firmware version, SSID, last updated
+- Automatically refreshes every 60 seconds
+
+> Requires valid EasyLog Cloud username and password.
+
 
 ![easylogcloud](easylogcloud.jpg)
 
+---
+
 ## Installation
 
-1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
-2. If you do not have a `custom_components` directory (folder) there, you need to create it.
-3. In the `custom_components` directory (folder) create a new folder called `ha-easylog-cloud`.
-4. Download _all_ the files from the `custom_components/ha-easylog-cloud/` directory (folder) in this repository.
-5. Place the files you downloaded in the new directory (folder) you created.
-6. Restart Home Assistant
-7. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Home Assistant EasyLog Cloud"
+### Via HACS (recommended)
+1. Go to HACS → Integrations → “+” → Select **“EasyLog Cloud”**
+2. Restart Home Assistant
+3. Go to **Settings → Devices & Services → “+” → EasyLog Cloud**
+4. Enter your EasyLog Cloud credentials
 
-Using your HA configuration directory (folder) as a starting point you should now also have this:
+### Manual
+1. Copy this repo into `custom_components/ha-easylog-cloud` in your Home Assistant config
+2. Restart Home Assistant
+3. Follow same steps as above to add the integration
 
-```text
-custom_components/ha-easylog-cloud/translations/en.json
-custom_components/ha-easylog-cloud/translations/fr.json
-custom_components/ha-easylog-cloud/translations/nb.json
-custom_components/ha-easylog-cloud/translations/sensor.en.json
-custom_components/ha-easylog-cloud/translations/sensor.fr.json
-custom_components/ha-easylog-cloud/translations/sensor.nb.json
-custom_components/ha-easylog-cloud/translations/sensor.nb.json
-custom_components/ha-easylog-cloud/__init__.py
-custom_components/ha-easylog-cloud/api.py
-custom_components/ha-easylog-cloud/binary_sensor.py
-custom_components/ha-easylog-cloud/config_flow.py
-custom_components/ha-easylog-cloud/const.py
-custom_components/ha-easylog-cloud/manifest.json
-custom_components/ha-easylog-cloud/sensor.py
-custom_components/ha-easylog-cloud/switch.py
-```
+After setup, sensors will be automatically created for each supported measurement per device.
 
-## Configuration is done in the UI
+---
 
-<!---->
+## Configuration
 
-## Contributions are welcome!
+All configuration is done via the Home Assistant UI (no YAML required).
 
-If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
+---
 
-## Credits
+## Contributions
 
-This project was generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter](https://github.com/oncleben31/cookiecutter-homeassistant-custom-component) template.
+Contributions are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
-Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [integration_blueprint][integration_blueprint] template
+This project was generated using the [Home Assistant Custom Component Cookiecutter](https://github.com/oncleben31/cookiecutter-homeassistant-custom-component) and heavily modified for actual integration logic.
 
 ---
 
@@ -82,15 +66,6 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [commits]: https://github.com/Cadabena/ha-easylog-cloud/commits/main
 [hacs]: https://hacs.xyz
 [hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
-[discord]: https://discord.gg/Qa5fW2R
-[discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
-[exampleimg]: example.png
-[forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
-[forum]: https://community.home-assistant.io/
 [license-shield]: https://img.shields.io/github/license/Cadabena/ha-easylog-cloud.svg?style=for-the-badge
-[maintenance-shield]: https://img.shields.io/badge/maintainer-%40Cadabena-blue.svg?style=for-the-badge
-[pre-commit]: https://github.com/pre-commit/pre-commit
-[pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/Cadabena/ha-easylog-cloud.svg?style=for-the-badge
 [releases]: https://gitlab.com/Cadabena/ha-easylog-cloud/releases
-[user_profile]: https://gitlab.com/Cadabena
