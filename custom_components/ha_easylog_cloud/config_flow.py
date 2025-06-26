@@ -53,7 +53,7 @@ class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await coordinator.authenticate()
             html = await coordinator.fetch_devices_page()
             coordinator._extract_devices_arr_from_html(html)
-            coordinator._extract_device_data(coordinator._extract_devices_arr_from_html(html), html)
+            coordinator._extract_device_list(coordinator._extract_devices_arr_from_html(html), html)
 
             if coordinator.account_name:
                 return True, coordinator.account_name

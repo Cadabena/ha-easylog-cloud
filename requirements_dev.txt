@@ -1,1 +1,4 @@
 homeassistant
+aiohttp
+beautifulsoup4
+xmltodict

@@ -37,7 +37,7 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
 
         # Fix humidity unit: replace %RH with % (required by HA)
         raw_unit = data.get("unit") if isinstance(data, dict) else None
-        if self._attr_device_class == SensorDeviceClass.HUMIDITY and raw_unit == "%RH":
+        if self._attr_device_class == SensorDeviceClass.HUMIDITY and raw_unit in ("%RH", "RH%"):
             self._attr_native_unit_of_measurement = "%"
         elif self._attr_device_class:
             self._attr_native_unit_of_measurement = raw_unit

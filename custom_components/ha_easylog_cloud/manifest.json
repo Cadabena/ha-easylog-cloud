@@ -6,7 +6,8 @@
   "issue_tracker": "https://gitlab.com/Cadabena/ha-easylog-cloud/-/issues",
   "requirements": [
     "aiohttp",
-    "beautifulsoup4"
+    "beautifulsoup4",
+    "xmltodict"
   ],
   "dependencies": [],
   "codeowners": ["@Cadabena"],
