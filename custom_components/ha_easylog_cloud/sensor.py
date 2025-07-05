@@ -35,12 +35,13 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = f"{device['name']} {label}"
         self._attr_unique_id = f"{device['id']}_{label.lower().replace(' ', '_')}"
         self._attr_device_class = self._guess_device_class(label)
+        self._attr_state_class = self._guess_state_class(label)
 
         # Fix humidity unit: replace %RH with % (required by HA)
         raw_unit = data.get("unit") if isinstance(data, dict) else None
         if self._attr_device_class == SensorDeviceClass.HUMIDITY and raw_unit in ("%RH", "RH%"):
             self._attr_native_unit_of_measurement = "%"
-        elif self._attr_device_class:
+        elif self._attr_device_class or self._is_numeric_sensor(label):
             self._attr_native_unit_of_measurement = raw_unit
         else:
             self._attr_native_unit_of_measurement = None
@@ -62,7 +63,20 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
             return SensorDeviceClass.SIGNAL_STRENGTH
         if "last updated" in label:
             return SensorDeviceClass.TIMESTAMP
+        # No standard device class for VOC, particulates, or air quality in HA as of 2024
         return None
+
+    def _guess_state_class(self, label: str):
+        # For VOC, particulates, air quality, and other numeric sensors, set as measurement
+        if self._is_numeric_sensor(label):
+            return "measurement"
+        # For timestamp, do not set state_class
+        return None
+
+    def _is_numeric_sensor(self, label: str):
+        label = label.lower()
+        keywords = ["voc", "particulate", "pm2.5", "pm10", "air quality", "aqi"]
+        return any(k in label for k in keywords)
 
     @property
     def native_value(self):
@@ -90,6 +104,13 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                         return value
                     # If value is not a string or datetime, return None
                     return None
+                # For numeric sensors, ensure value is a number
+                if self._is_numeric_sensor(self.label):
+                    try:
+                        return float(value)
+                    except (TypeError, ValueError):
+                        _LOGGER.warning("Value for %s is not numeric: %s", self.label, value)
+                        return None
                 return value
             except Exception as e:
                 _LOGGER.warning("native_value error for %s on %s: %s", self.label, device.get("name"), e)
