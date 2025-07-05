@@ -71,6 +71,16 @@ class EasylogCloudCoordinator(DataUpdateCoordinator):
                 firmware = device.get("Firmware Version") or {"value": ""}
                 ssid = device.get("SSID") or {"value": ""}
                 wifi_signal = device.get("WiFi Signal") or {"value": ""}
+                # Parse lastCommFormatted to a datetime object if possible
+                last_comm = d.get("lastCommFormatted", "")
+                if isinstance(last_comm, str) and last_comm:
+                    try:
+                        dt = datetime.datetime.strptime(last_comm, "%d/%m/%Y %H:%M:%S")
+                        last_comm_dt = dt_util.as_local(dt)
+                    except Exception:
+                        last_comm_dt = None
+                else:
+                    last_comm_dt = None
                 device_data = {
                     "id": device_id,
                     "name": d.get("sensorName", device["name"]),
@@ -78,8 +88,8 @@ class EasylogCloudCoordinator(DataUpdateCoordinator):
                     "MAC Address": {"value": mac_addr.get("value", ""), "unit": ""},
                     "Firmware Version": {"value": d.get("firmwareVersion", firmware.get("value", "")), "unit": ""},
                     "SSID": {"value": ssid.get("value", ""), "unit": ""},
-                    "WiFi Signal": {"value": d.get("rssi", wifi_signal.get("value", "")), "unit": "dBm"},
-                    "Last Updated": {"value": d.get("lastCommFormatted", ""), "unit": ""},
+                    "WiFi Signal": {"value": d.get("rssi", wifi_signal.get("value", "")), "unit": None},
+                    "Last Updated": {"value": last_comm_dt, "unit": ""},
                 }
                 # Add channels
                 channels = []
@@ -96,6 +106,17 @@ class EasylogCloudCoordinator(DataUpdateCoordinator):
                     label = channel.get("channelLabel", "")
                     value = channel.get("reading", "")
                     unit = channel.get("unit", "")
+                    # Convert to int if possible
+                    try:
+                        value = int(value)
+                    except (ValueError, TypeError):
+                        try:
+                            value = float(value)
+                        except (ValueError, TypeError):
+                            value = None
+                    # Convert invalid values like '--.--' to None
+                    if value in ['--.--', '---', 'N/A', '']:
+                        value = None
                     device_data[label] = {"value": value, "unit": unit}
                 # Defensive check: ensure 'Last Updated' is always a datetime or None
                 if not (device_data["Last Updated"]["value"] is None or hasattr(device_data["Last Updated"]["value"], "tzinfo")):
@@ -103,6 +124,7 @@ class EasylogCloudCoordinator(DataUpdateCoordinator):
                 live_devices.append(device_data)
             if not live_devices:
                 _LOGGER.error("No live devices found! device_list: %s", device_list)
+            _LOGGER.debug("Coordinator update complete. Found %d devices with data", len(live_devices))
             return live_devices
         except Exception as e:
             _LOGGER.error("Failed to fetch device data: %s", e)
@@ -180,7 +202,7 @@ class EasylogCloudCoordinator(DataUpdateCoordinator):
                     "MAC Address": {"value": mac, "unit": ""},
                     "Firmware Version": {"value": firmware, "unit": ""},
                     "SSID": {"value": ssid, "unit": ""},
-                    "WiFi Signal": {"value": wifi_signal, "unit": "dBm"},
+                    "WiFi Signal": {"value": wifi_signal, "unit": None},
                     "Last Updated": {"value": last_sync, "unit": ""},
                 }
                 devices.append(device_data)

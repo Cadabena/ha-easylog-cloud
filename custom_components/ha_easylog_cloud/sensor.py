@@ -4,6 +4,7 @@ import logging
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.entity import EntityCategory
+from datetime import datetime, timezone
 
 from .const import DOMAIN
 
@@ -29,7 +30,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator, device, label, data):
         super().__init__(coordinator)
-        self.device = device
+        self.device_id = device["id"]
         self.label = label
         self._attr_name = f"{device['name']} {label}"
         self._attr_unique_id = f"{device['id']}_{label.lower().replace(' ', '_')}"
@@ -65,17 +66,50 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def native_value(self):
-        try:
-            return self.device[self.label]["value"]
-        except Exception as e:
-            _LOGGER.warning("native_value error for %s on %s: %s", self.label, self.device.get("name"), e)
-            return None
+        # Always look up the latest device data from the coordinator
+        device = next((d for d in self.coordinator.data if d["id"] == self.device_id), None)
+        if device and self.label in device:
+            try:
+                value = device[self.label]["value"]
+                _LOGGER.debug("Sensor %s.%s: fetched value %s", self.device_id, self.label, value)
+                if self._attr_device_class == SensorDeviceClass.TIMESTAMP and value:
+                    # Try to parse the value to a datetime object if it's a string
+                    if isinstance(value, str):
+                        try:
+                            # Try ISO8601 first
+                            dt = datetime.fromisoformat(value)
+                            # If it's naive, assume UTC
+                            if dt.tzinfo is None:
+                                dt = dt.replace(tzinfo=timezone.utc)
+                            return dt
+                        except Exception:
+                            # Fallback: try known formats, or return None if parsing fails
+                            _LOGGER.warning("Failed to parse timestamp value '%s' for %s", value, self.label)
+                            return None
+                    elif isinstance(value, datetime):
+                        return value
+                    # If value is not a string or datetime, return None
+                    return None
+                return value
+            except Exception as e:
+                _LOGGER.warning("native_value error for %s on %s: %s", self.label, device.get("name"), e)
+        else:
+            _LOGGER.debug("Sensor %s.%s: device or label not found in coordinator data", self.device_id, self.label)
+        return None
 
     @property
     def device_info(self):
+        # Get the latest device info from coordinator data
+        device = next((d for d in self.coordinator.data if d["id"] == self.device_id), None)
+        if device:
+            return {
+                "identifiers": {(DOMAIN, self.device_id),},
+                "name": device["name"],
+                "manufacturer": "Lascar Electronics",
+                "model": device["model"],
+            }
         return {
-            "identifiers": {(DOMAIN, self.device["id"]),},
-            "name": self.device["name"],
+            "identifiers": {(DOMAIN, self.device_id),},
+            "name": f"Device {self.device_id}",
             "manufacturer": "Lascar Electronics",
-            "model": self.device["model"],
         }
