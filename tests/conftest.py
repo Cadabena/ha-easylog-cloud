@@ -89,4 +89,7 @@ def mock_hass_loader():
         patch("homeassistant.loader.async_get_integration", new=_get_integration),
         patch("homeassistant.loader.async_get_integrations", new=_get_integrations),
     ):
+        # Ensure the config_flow module is imported so its handler registers with HA
+        import importlib
+        importlib.import_module("custom_components.ha_easylog_cloud.config_flow")
         yield
