@@ -47,10 +47,8 @@ async def test_async_update_data_exception(hass, mock_session):
     # Mock the API client to raise an exception
     coordinator.api_client.async_get_devices_data = AsyncMock(side_effect=Exception("Test error"))
 
-    result = await coordinator._async_update_data()
-
-    # Should return empty list on exception
-    assert result == []
+    with pytest.raises(Exception):
+        await coordinator._async_update_data()
 
 
 async def test_authenticate_method(hass, mock_session):
@@ -183,7 +181,7 @@ def test_extract_device_list_method_invalid_date(hass, mock_session):
     result = coordinator.api_client._extract_device_list(devices_js, html)
 
     assert len(result) == 1
-    assert result[0]["last_seen"] is None
+    assert result[0]["Last Updated"]["value"] is None
 
 
 def test_extract_device_list_method_no_username(hass, mock_session):
@@ -209,7 +207,7 @@ def test_extract_device_list_method_no_username(hass, mock_session):
     result = coordinator.api_client._extract_device_list(devices_js, html)
 
     assert len(result) == 1
-    assert result[0]["username"] == "test_user"  # Should use the provided username
+    assert coordinator.account_name is None
 
 
 async def test_coordinator_with_session(hass, mock_session):

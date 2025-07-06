@@ -157,7 +157,7 @@ class HAEasylogCloudApiClient:
     def _extract_device_list(self, devices_js: str, html: str):
         devices = []
         # Use regex to match each 'new Device(...)' block
-        device_blocks = re.findall(r'new Device\((.*?\[.*?new Channel.*?\][^)]*)\)', devices_js)
+        device_blocks = re.findall(r'new Device\((.*?\[.*?new Channel.*?\][^)]*)\)', devices_js, re.DOTALL)
         for block in device_blocks:
             # Log the device block for debugging
             _LOGGER.error("Device block: %s", block)

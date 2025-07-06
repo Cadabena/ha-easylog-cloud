@@ -9,6 +9,9 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .coordinator import EasylogCloudCoordinator
 from .const import DOMAIN, CONF_USERNAME, CONF_PASSWORD
 
+# Expose the API client at module level so tests can patch
+from .api import HAEasylogCloudApiClient  # noqa: E402  (import after top-level for tests)
+
 _LOGGER = logging.getLogger(__name__)
 
 class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -48,7 +51,6 @@ class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _test_credentials(self, username: str, password: str) -> tuple[bool, str | None]:
         try:
-            from .api import HAEasylogCloudApiClient
             api_client = HAEasylogCloudApiClient(self.hass, username, password)
             await api_client.authenticate()
             html = await api_client.fetch_devices_page()

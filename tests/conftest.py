@@ -37,3 +37,38 @@ def error_get_data_fixture():
         side_effect=Exception,
     ):
         yield
+
+
+@pytest.fixture(name="mock_hass_aiohttp", autouse=True)
+async def mock_hass_aiohttp_fixture():
+    """Mock Home Assistant aiohttp client session globally.
+
+    Many unit-tests instantiate the API / coordinator directly which internally calls
+    ``async_get_clientsession`` at import time (i.e. outside of an event-loop).  To
+    avoid warnings like *"The object should be created within an async function"*
+    we replace the helper with an ``AsyncMock`` returning a dummy session for the
+    entire test run.
+    """
+    from unittest.mock import AsyncMock, patch
+
+    async_mock_session = AsyncMock()
+
+    with patch("custom_components.ha_easylog_cloud.api.async_get_clientsession", return_value=async_mock_session):
+        yield
+
+
+@pytest.fixture(name="mock_hass_loader", autouse=True)
+async def mock_hass_loader_fixture():
+    """Prevent IntegrationNotFound errors when Home Assistant looks up metadata.
+
+    The config-flow helper ``async_get_integration`` expects the integration to be
+    discoverable via Home Assistant's loader.  We stub this call so the config
+    flow under test does not depend on the actual manifest on disk.
+    """
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_integration = MagicMock()
+    mock_integration.single_config_entry = False
+
+    with patch("homeassistant.loader.async_get_integration", new=AsyncMock(return_value=mock_integration)):
+        yield

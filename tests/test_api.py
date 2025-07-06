@@ -17,10 +17,10 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 @pytest.fixture
 def mock_session():
-    """Mock aiohttp session."""
-    with patch('custom_components.ha_easylog_cloud.api.async_get_clientsession') as mock:
+    """Mock aiohttp session used by the API client."""
+    with patch('custom_components.ha_easylog_cloud.api.async_get_clientsession') as mock_get_session:
         session = AsyncMock()
-        mock.return_value = session
+        mock_get_session.return_value = session
         yield session
 
 
@@ -45,18 +45,18 @@ async def test_authenticate_success(hass, mock_session):
     </html>
     """
     
+    # Configure session methods for awaitable calls (no context manager required here)
     mock_response = AsyncMock()
     mock_response.text = AsyncMock(return_value=login_html)
-    mock_response.cookies = {"session": "test_session"}
-    
-    mock_session.get.return_value.__aenter__.return_value = mock_response
-    mock_session.post.return_value.__aenter__.return_value = mock_response
+    session = mock_session  # alias for clarity
+    session.get = AsyncMock(return_value=mock_response)
+    session.post = AsyncMock(return_value=mock_response)
     
     await api.authenticate()
     
     # Verify the authentication process
-    mock_session.get.assert_called_once()
-    mock_session.post.assert_called_once()
+    session.get.assert_called_once()
+    session.post.assert_called_once()
 
 
 async def test_authenticate_missing_viewstate(hass, mock_session):
@@ -69,7 +69,7 @@ async def test_authenticate_missing_viewstate(hass, mock_session):
     mock_response = AsyncMock()
     mock_response.text = AsyncMock(return_value=login_html)
     
-    mock_session.get.return_value.__aenter__.return_value = mock_response
+    mock_session.get = AsyncMock(return_value=mock_response)
     
     with pytest.raises(KeyError):
         await api.authenticate()
@@ -84,7 +84,8 @@ async def test_fetch_devices_page(hass, mock_session):
     mock_response = AsyncMock()
     mock_response.text = AsyncMock(return_value=devices_html)
     
-    mock_session.get.return_value.__aenter__.return_value = mock_response
+    session = mock_session
+    session.get = AsyncMock(return_value=mock_response)
     
     # Set cookies
     api._cookies = {"session": "test_session"}
@@ -236,6 +237,14 @@ async def test_async_get_devices_data_success(hass, mock_session):
     api.fetch_devices_page = AsyncMock(return_value="<html><body>Devices page</body></html>")
     api._extract_devices_arr_from_html = MagicMock(return_value="new Device(1, 'test', 'EL-USB-TC', 'Test Device')")
     api._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+    
+    # Prepare context manager response
+    live_response = AsyncMock()
+    live_response.json = AsyncMock(return_value={"d": {"sensorName": "Test Device", "channels": {}}})
+    live_response.text = AsyncMock(return_value="{}")
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = live_response
+    api._session.get = AsyncMock(return_value=async_cm)
     
     result = await api.async_get_devices_data()
     
