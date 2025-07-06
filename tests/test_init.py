@@ -39,6 +39,9 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
             'domain': DOMAIN,
             'config_flow': True,
             'async_get_flow_handler': lambda: None,
+            'disabled': False,
+            'is_built_in': False,
+            'documentation': None,
         })()
         mock_get_integration.return_value = mock_integration
         
