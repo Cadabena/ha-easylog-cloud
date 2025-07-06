@@ -33,87 +33,20 @@ class EasylogCloudCoordinator(DataUpdateCoordinator):
         return await self.api_client.async_get_devices_data()
 
     async def authenticate(self):
-        login_url = "https://www.easylogcloud.com/"
-        response = await self._session.get(login_url)
-        html = await response.text()
-        soup = BeautifulSoup(html, "html.parser")
-
-        viewstate = soup.find("input", {"name": "__VIEWSTATE"})["value"]
-        viewstategen = soup.find("input", {"name": "__VIEWSTATEGENERATOR"})["value"]
-
-        payload = {
-            "__VIEWSTATE": viewstate,
-            "__VIEWSTATEGENERATOR": viewstategen,
-            "ctl00$cph1$username1": self._username,
-            "ctl00$cph1$password": self._password,
-            "ctl00$cph1$rememberme": "on",
-            "ctl00$cph1$signin": "Sign In",
-        }
-
-        post_resp = await self._session.post(login_url, data=payload)
-        self._cookies = post_resp.cookies
-        _LOGGER.debug("Login status: %s", post_resp.status)
+        """Authenticate using the API client."""
+        await self.api_client.authenticate()
+        self._cookies = self.api_client._cookies
 
     async def fetch_devices_page(self):
-        url = "https://www.easylogcloud.com/devices.aspx"
-        response = await self._session.get(url, cookies=self._cookies)
-        html = await response.text()
-        return html
+        """Fetch devices page using the API client."""
+        return await self.api_client.fetch_devices_page()
 
     def _extract_devices_arr_from_html(self, html: str) -> str:
-        match = re.search(r"var devicesArr = \[(.*?)\];", html, re.DOTALL)
-        if not match:
-            _LOGGER.error("devicesArr not found in HTML")
-            _LOGGER.debug("Full HTML: %s", html[:5000])
-            return ""
-        return match.group(1)
+        """Extract devices array from HTML using the API client."""
+        return self.api_client._extract_devices_arr_from_html(html)
 
     def _extract_device_list(self, devices_js: str, html: str):
-        devices = []
-        # Use regex to match each 'new Device(...)' block
-        device_blocks = re.findall(r'new Device\((.*?\[.*?new Channel.*?\][^)]*)\)', devices_js)
-        for block in device_blocks:
-            # Log the device block for debugging
-            _LOGGER.error("Device block: %s", block)
-            # Now parse block as before
-            parts = re.split(r",\s*\[new Channel", block, maxsplit=1)
-            device_fields = re.split(r"(?<!\\),", parts[0], maxsplit=50)
-            # Check for required indexes before using them
-            required_indexes = [0, 2, 4, 5, 16, 17, 28, 34]
-            if len(device_fields) < max(required_indexes) + 1:
-                _LOGGER.warning("Skipping device, not enough fields: %d found", len(device_fields))
-                continue
-            try:
-                device_id = int(device_fields[0].strip())
-                model = device_fields[2].strip("' ")
-                name = device_fields[4].strip("' ")
-                mac = device_fields[5].strip("' ") if len(device_fields) > 5 else ""
-                firmware = device_fields[16].strip("' ") if len(device_fields) > 16 else ""
-                ssid = device_fields[17].strip("' ") if len(device_fields) > 17 else ""
-                wifi_signal = device_fields[28].strip() if len(device_fields) > 28 else ""
-                last_sync_raw = device_fields[34].strip("' ") if len(device_fields) > 34 else ""
-                try:
-                    dt = datetime.datetime.strptime(last_sync_raw, "%d/%m/%Y %H:%M:%S")
-                    last_sync = dt_util.as_local(dt)
-                except Exception:
-                    last_sync = None
-                device_data = {
-                    "id": device_id,
-                    "name": name,
-                    "model": model,
-                    "MAC Address": {"value": mac, "unit": ""},
-                    "Firmware Version": {"value": firmware, "unit": ""},
-                    "SSID": {"value": ssid, "unit": ""},
-                    "WiFi Signal": {"value": wifi_signal, "unit": None},
-                    "Last Updated": {"value": last_sync, "unit": ""},
-                }
-                devices.append(device_data)
-            except (IndexError, ValueError) as e:
-                _LOGGER.warning("Failed to parse device fields: %s", e)
-                continue
-        soup = BeautifulSoup(html, "html.parser")
-        username_span = soup.find("span", {"id": "username"})
-        if username_span:
-            self.account_name = username_span.text.strip()
-            _LOGGER.debug("Extracted account name: %s", self.account_name)
+        """Extract device list using the API client."""
+        devices = self.api_client._extract_device_list(devices_js, html)
+        self.account_name = self.api_client.account_name
         return devices

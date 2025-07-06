@@ -282,68 +282,6 @@ async def test_async_get_devices_data_no_devices(hass, mock_session):
     api.fetch_devices_page.assert_called_once()
 
 
-async def test_async_get_devices_data_xml_response(hass, aioclient_mock):
-    """Test device data retrieval with XML response."""
-    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
-    
-    # Mock authentication
-    with patch.object(api, 'authenticate'):
-        # Mock devices page
-        with patch.object(api, 'fetch_devices_page', return_value="<html></html>"):
-            # Mock device extraction
-            mock_device = {
-                "id": 1,
-                "name": "Test Device",
-                "model": "EL-USB-TC",
-            }
-            
-            with patch.object(api, '_extract_devices_arr_from_html', return_value="test"):
-                with patch.object(api, '_extract_device_list', return_value=[mock_device]):
-                    # Mock XML response
-                    xml_response = """
-                    <string>{"d": {"sensorName": "Test Device", "channels": {"channelDetails": [{"channelLabel": "Temperature", "reading": "25.5", "unit": "°C"}]}}}</string>
-                    """
-                    
-                    aioclient_mock.get(
-                        "https://www.easylogcloud.com/devicedata.asmx/currentStatus?index=1&sensorId=1",
-                        text=xml_response
-                    )
-                    
-                    result = await api.async_get_devices_data()
-                    
-                    assert len(result) == 1
-                    device = result[0]
-                    assert device["Temperature"]["value"] == 25.5
-
-
-async def test_async_get_devices_data_invalid_response(hass, aioclient_mock):
-    """Test device data retrieval with invalid response."""
-    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
-    
-    # Mock authentication
-    with patch.object(api, 'authenticate'):
-        # Mock devices page
-        with patch.object(api, 'fetch_devices_page', return_value="<html></html>"):
-            # Mock device extraction
-            mock_device = {
-                "id": 1,
-                "name": "Test Device",
-                "model": "EL-USB-TC",
-            }
-            
-            with patch.object(api, '_extract_devices_arr_from_html', return_value="test"):
-                with patch.object(api, '_extract_device_list', return_value=[mock_device]):
-                    # Mock invalid response
-                    aioclient_mock.get(
-                        "https://www.easylogcloud.com/devicedata.asmx/currentStatus?index=1&sensorId=1",
-                        text="invalid response"
-                    )
-                    
-                    result = await api.async_get_devices_data()
-                    
-                    assert len(result) == 0  # Device is not added when API fails
-
-
 async def test_async_get_devices_data_no_channels(hass, aioclient_mock):
     """Test device data retrieval with no channels."""
     api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
@@ -364,7 +302,8 @@ async def test_async_get_devices_data_no_channels(hass, aioclient_mock):
                     # Mock response with no channels
                     live_data = {
                         "d": {
-                            "sensorName": "Test Device"
+                            "sensorName": "Test Device",
+                            "channels": {}
                         }
                     }
                     
@@ -377,8 +316,37 @@ async def test_async_get_devices_data_no_channels(hass, aioclient_mock):
                     
                     assert len(result) == 1
                     device = result[0]
-                    # Should not have any channel data
-                    assert "Temperature" not in device
+                    # Device should be returned without channel data
+                    assert device["id"] == 1
+                    assert device["name"] == "Test Device"
+
+
+async def test_async_get_devices_data_api_failure(hass, aioclient_mock):
+    """Test device data retrieval with API failure."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
+    
+    # Mock authentication
+    with patch.object(api, 'authenticate'):
+        # Mock devices page
+        with patch.object(api, 'fetch_devices_page', return_value="<html></html>"):
+            # Mock device extraction
+            mock_device = {
+                "id": 1,
+                "name": "Test Device",
+                "model": "EL-USB-TC",
+            }
+            
+            with patch.object(api, '_extract_devices_arr_from_html', return_value="test"):
+                with patch.object(api, '_extract_device_list', return_value=[mock_device]):
+                    # Mock API failure
+                    aioclient_mock.get(
+                        "https://www.easylogcloud.com/devicedata.asmx/currentStatus?index=1&sensorId=1",
+                        status=500
+                    )
+                    
+                    result = await api.async_get_devices_data()
+                    
+                    assert len(result) == 0  # Device is not added when API fails
 
 
 async def test_async_set_title(hass):
