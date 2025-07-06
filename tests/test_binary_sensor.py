@@ -149,34 +149,39 @@ def test_binary_sensor_is_on_property():
     
     # Create a mock coordinator
     mock_coordinator = type('MockCoordinator', (), {})()
-    mock_device = {"id": 1, "name": "Test Device"}
     
     # Test string values
-    sensor_true = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": "true"})
-    # Update the device data to include the test value
-    mock_device["Test"] = {"value": "true"}
+    mock_device_true = {"id": 1, "name": "Test Device", "Test": {"value": "true"}}
+    sensor_true = EasylogCloudBinarySensor(mock_coordinator, mock_device_true, "Test", {"value": "true"})
     assert sensor_true.is_on is True
     
-    sensor_on = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": "on"})
+    mock_device_on = {"id": 1, "name": "Test Device", "Test": {"value": "on"}}
+    sensor_on = EasylogCloudBinarySensor(mock_coordinator, mock_device_on, "Test", {"value": "on"})
     assert sensor_on.is_on is True
     
-    sensor_1 = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": "1"})
+    mock_device_1 = {"id": 1, "name": "Test Device", "Test": {"value": "1"}}
+    sensor_1 = EasylogCloudBinarySensor(mock_coordinator, mock_device_1, "Test", {"value": "1"})
     assert sensor_1.is_on is True
     
-    sensor_false = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": "false"})
+    mock_device_false = {"id": 1, "name": "Test Device", "Test": {"value": "false"}}
+    sensor_false = EasylogCloudBinarySensor(mock_coordinator, mock_device_false, "Test", {"value": "false"})
     assert sensor_false.is_on is False
     
-    sensor_off = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": "off"})
+    mock_device_off = {"id": 1, "name": "Test Device", "Test": {"value": "off"}}
+    sensor_off = EasylogCloudBinarySensor(mock_coordinator, mock_device_off, "Test", {"value": "off"})
     assert sensor_off.is_on is False
     
-    sensor_0 = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": "0"})
+    mock_device_0 = {"id": 1, "name": "Test Device", "Test": {"value": "0"}}
+    sensor_0 = EasylogCloudBinarySensor(mock_coordinator, mock_device_0, "Test", {"value": "0"})
     assert sensor_0.is_on is False
     
     # Test numeric values
-    sensor_num_true = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": 1})
+    mock_device_num_true = {"id": 1, "name": "Test Device", "Test": {"value": 1}}
+    sensor_num_true = EasylogCloudBinarySensor(mock_coordinator, mock_device_num_true, "Test", {"value": 1})
     assert sensor_num_true.is_on is True
     
-    sensor_num_false = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": 0})
+    mock_device_num_false = {"id": 1, "name": "Test Device", "Test": {"value": 0}}
+    sensor_num_false = EasylogCloudBinarySensor(mock_coordinator, mock_device_num_false, "Test", {"value": 0})
     assert sensor_num_false.is_on is False
 
 

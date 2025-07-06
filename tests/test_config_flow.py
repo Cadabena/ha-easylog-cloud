@@ -171,7 +171,7 @@ async def test_test_credentials_success(hass):
         'account_name': "test_user"
     })()
     
-    with patch('custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient', return_value=mock_api_client):
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
         valid, name = await flow._test_credentials("test_user", "test_pass")
         
         assert valid is True
@@ -195,7 +195,7 @@ async def test_test_credentials_success_no_account_name(hass):
         'account_name': None
     })()
     
-    with patch('custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient', return_value=mock_api_client):
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
         valid, name = await flow._test_credentials("test_user", "test_pass")
         
         assert valid is True
@@ -215,7 +215,7 @@ async def test_test_credentials_failure(hass):
         'authenticate': AsyncMock(side_effect=Exception("Auth failed"))
     })()
     
-    with patch('custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient', return_value=mock_api_client):
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
         valid, name = await flow._test_credentials("test_user", "test_pass")
         
         assert valid is False

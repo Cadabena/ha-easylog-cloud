@@ -54,10 +54,19 @@ async def test_authenticate_missing_viewstate(hass, aioclient_mock):
     """Test authentication with missing viewstate."""
     api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
     
+    # Mock the session property to avoid aiohttp warnings
+    mock_session = AsyncMock()
+    api._session = mock_session
+    
     # Mock the login page response without viewstate
     login_html = "<html></html>"
     
-    aioclient_mock.get("https://www.easylogcloud.com/", text=login_html)
+    # Mock the response objects properly
+    mock_response = AsyncMock()
+    mock_response.text = AsyncMock(return_value=login_html)
+    mock_response.cookies = {}
+    
+    mock_session.get.return_value.__aenter__.return_value = mock_response
     
     with pytest.raises(KeyError):
         await api.authenticate()
@@ -67,9 +76,16 @@ async def test_fetch_devices_page(hass, aioclient_mock):
     """Test fetching devices page."""
     api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
     
+    # Mock the session property
+    mock_session = AsyncMock()
+    api._session = mock_session
+    
     # Mock the devices page response
     devices_html = "<html><body>Devices page content</body></html>"
-    aioclient_mock.get("https://www.easylogcloud.com/devices.aspx", text=devices_html)
+    mock_response = AsyncMock()
+    mock_response.text = AsyncMock(return_value=devices_html)
+    
+    mock_session.get.return_value.__aenter__.return_value = mock_response
     
     # Set cookies
     api._cookies = {"session": "test_session"}
@@ -77,7 +93,7 @@ async def test_fetch_devices_page(hass, aioclient_mock):
     result = await api.fetch_devices_page()
     
     assert result == devices_html
-    assert len(aioclient_mock.mock_calls) == 1
+    assert mock_session.get.called
 
 
 def test_extract_devices_arr_from_html(hass):

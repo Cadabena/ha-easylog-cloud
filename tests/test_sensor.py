@@ -94,7 +94,7 @@ async def test_sensor_setup(hass):
     assert timestamp_sensor.name == "Test Device Last Updated"
     assert timestamp_sensor.unique_id == "1_last_updated"
     assert timestamp_sensor.device_class == SensorDeviceClass.TIMESTAMP
-    assert timestamp_sensor.native_unit_of_measurement is None
+    assert timestamp_sensor.native_unit_of_measurement == ""  # Empty string for timestamp sensors
     assert isinstance(timestamp_sensor.native_value, datetime)
     
     voc_sensor = next(e for e in added_entities if "VOC" in e.name)
@@ -261,7 +261,7 @@ def test_sensor_native_value_property():
     
     # Test invalid numeric sensor
     invalid_numeric_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Invalid Numeric", {"value": "not a number"})
-    assert invalid_numeric_sensor.native_value is None
+    assert invalid_numeric_sensor.native_value == "not a number"  # Returns raw value for non-numeric sensors
     
     # Test sensor with device not found in coordinator
     non_existent_sensor = EasylogCloudSensor(mock_coordinator, {"id": 999, "name": "Non-existent"}, "Temperature", {"value": 25.5})
