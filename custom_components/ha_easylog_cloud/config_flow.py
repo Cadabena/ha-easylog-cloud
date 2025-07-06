@@ -48,15 +48,15 @@ class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _test_credentials(self, username: str, password: str) -> tuple[bool, str | None]:
         try:
-            session = async_get_clientsession(self.hass)
-            coordinator = EasylogCloudCoordinator(self.hass, username, password)
-            await coordinator.authenticate()
-            html = await coordinator.fetch_devices_page()
-            coordinator._extract_devices_arr_from_html(html)
-            coordinator._extract_device_list(coordinator._extract_devices_arr_from_html(html), html)
+            from .api import HAEasylogCloudApiClient
+            api_client = HAEasylogCloudApiClient(self.hass, username, password)
+            await api_client.authenticate()
+            html = await api_client.fetch_devices_page()
+            devices_js = api_client._extract_devices_arr_from_html(html)
+            device_list = api_client._extract_device_list(devices_js, html)
 
-            if coordinator.account_name:
-                return True, coordinator.account_name
+            if api_client.account_name:
+                return True, api_client.account_name
             return True, None
         except Exception as e:
             _LOGGER.error("Credential test failed: %s", e)

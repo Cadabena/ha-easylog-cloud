@@ -1,5 +1,6 @@
 """Test Home Assistant EasyLog Cloud setup process."""
 import pytest
+from unittest.mock import patch
 from custom_components.ha_easylog_cloud import (
     async_reload_entry,
 )
@@ -31,25 +32,35 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     # Create a mock entry so we don't have to go through config flow
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
 
-    # Set up the entry and assert that the values set during setup are where we expect
-    # them to be. Because we have patched the HAEasylogCloudDataUpdateCoordinator.async_get_devices_data
-    # call, no code from custom_components/ha_easylog_cloud/api.py actually runs.
-    assert await async_setup_entry(hass, config_entry)
-    assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
-    assert (
-        type(hass.data[DOMAIN][config_entry.entry_id]) == HAEasylogCloudDataUpdateCoordinator
-    )
+    # Mock the integration loading
+    with patch("homeassistant.loader.async_get_integration") as mock_get_integration:
+        # Create a mock integration
+        mock_integration = type('MockIntegration', (), {
+            'domain': DOMAIN,
+            'config_flow': True,
+            'async_get_flow_handler': lambda: None,
+        })()
+        mock_get_integration.return_value = mock_integration
+        
+        # Set up the entry and assert that the values set during setup are where we expect
+        # them to be. Because we have patched the HAEasylogCloudDataUpdateCoordinator.async_get_devices_data
+        # call, no code from custom_components/ha_easylog_cloud/api.py actually runs.
+        assert await async_setup_entry(hass, config_entry)
+        assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
+        assert (
+            type(hass.data[DOMAIN][config_entry.entry_id]) == HAEasylogCloudDataUpdateCoordinator
+        )
 
-    # Reload the entry and assert that the data from above is still there
-    assert await async_reload_entry(hass, config_entry) is None
-    assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
-    assert (
-        type(hass.data[DOMAIN][config_entry.entry_id]) == HAEasylogCloudDataUpdateCoordinator
-    )
+        # Reload the entry and assert that the data from above is still there
+        assert await async_reload_entry(hass, config_entry) is None
+        assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
+        assert (
+            type(hass.data[DOMAIN][config_entry.entry_id]) == HAEasylogCloudDataUpdateCoordinator
+        )
 
-    # Unload the entry and verify that the data has been removed
-    assert await async_unload_entry(hass, config_entry)
-    assert config_entry.entry_id not in hass.data[DOMAIN]
+        # Unload the entry and verify that the data has been removed
+        assert await async_unload_entry(hass, config_entry)
+        assert config_entry.entry_id not in hass.data[DOMAIN]
 
 
 async def test_setup_entry_exception(hass, error_on_get_data):

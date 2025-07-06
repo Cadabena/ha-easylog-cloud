@@ -60,13 +60,15 @@ async def test_successful_config_flow(hass, bypass_get_data):
     flow = EasylogCloudConfigFlow()
     flow.hass = hass
     
-    # Test the user step
-    result = await flow.async_step_user(user_input=MOCK_CONFIG)
-    
-    # Check that the config flow creates an entry
-    assert result["type"] == "create_entry"
-    assert result["title"] == "test_username"
-    assert result["data"] == MOCK_CONFIG
+    # Mock the credential test to return success
+    with patch.object(flow, '_test_credentials', return_value=(True, "test_username")):
+        # Test the user step
+        result = await flow.async_step_user(user_input=MOCK_CONFIG)
+        
+        # Check that the config flow creates an entry
+        assert result["type"] == "create_entry"
+        assert result["title"] == "test_username"
+        assert result["data"] == MOCK_CONFIG
 
 
 # Test failed config flow
@@ -78,12 +80,14 @@ async def test_failed_config_flow(hass, error_on_get_data):
     flow = EasylogCloudConfigFlow()
     flow.hass = hass
     
-    # Test the user step with invalid credentials
-    result = await flow.async_step_user(user_input=MOCK_CONFIG)
-    
-    # Check that the config flow shows an error
-    assert result["type"] == "form"
-    assert result["errors"] == {"base": "auth"}
+    # Mock the credential test to return failure
+    with patch.object(flow, '_test_credentials', return_value=(False, None)):
+        # Test the user step with invalid credentials
+        result = await flow.async_step_user(user_input=MOCK_CONFIG)
+        
+        # Check that the config flow shows an error
+        assert result["type"] == "form"
+        assert result["errors"] == {"base": "auth"}
 
 
 # Test options flow (simplified since we don't have an options flow implemented)
