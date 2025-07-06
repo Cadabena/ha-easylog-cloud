@@ -63,7 +63,7 @@ async def test_authenticate_missing_viewstate(hass, aioclient_mock):
     
     # Mock the response objects properly
     mock_response = AsyncMock()
-    mock_response.text = AsyncMock(return_value=login_html)
+    mock_response.text = login_html  # Return string directly, not coroutine
     mock_response.cookies = {}
     
     mock_session.get.return_value.__aenter__.return_value = mock_response
@@ -83,7 +83,7 @@ async def test_fetch_devices_page(hass, aioclient_mock):
     # Mock the devices page response
     devices_html = "<html><body>Devices page content</body></html>"
     mock_response = AsyncMock()
-    mock_response.text = AsyncMock(return_value=devices_html)
+    mock_response.text = devices_html  # Return string directly, not coroutine
     
     mock_session.get.return_value.__aenter__.return_value = mock_response
     
@@ -123,7 +123,7 @@ def test_extract_device_list_success(hass):
     """Test successful device list extraction."""
     api = HAEasylogCloudApiClient(hass, "test", "test")
     
-    # Mock devices JS with proper device data
+    # Mock devices JS with proper device data that matches the regex pattern
     devices_js = """
     new Device(1, 'test', 'EL-USB-TC', 'Test Device', 'AA:BB:CC:DD:EE:FF', 
                'test_location', 'test_group', 'test_notes', 'test_alerts', 
@@ -134,7 +134,7 @@ def test_extract_device_list_success(hass):
                'test_permissions', 'test_roles', 'test_users', 'test_groups', 
                '-50', 'test_ssid', 'test_bssid', 'test_channel', 'test_frequency', 
                'test_bandwidth', 'test_security', 'test_password', 'test_psk', 
-               '01/01/2024 12:00:00', [new Channel('Temperature', '25.5', '°C')])
+               '01/01/2024 12:00:00', [new Channel('Temperature', '25.5', '°C'), new Channel('Humidity', '60', '%')])
     """
     
     html = """
@@ -200,7 +200,7 @@ def test_extract_device_list_invalid_date(hass):
                'test_permissions', 'test_roles', 'test_users', 'test_groups', 
                '-50', 'test_ssid', 'test_bssid', 'test_channel', 'test_frequency', 
                'test_bandwidth', 'test_security', 'test_password', 'test_psk', 
-               'invalid_date', [new Channel('Temperature', '25.5', '°C')])
+               'invalid_date', [new Channel('Temperature', '25.5', '°C'), new Channel('Humidity', '60', '%')])
     """
     
     html = "<html></html>"

@@ -12,44 +12,31 @@ async def test_coordinator_initialization(hass):
     """Test coordinator initialization."""
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     
-    assert coordinator._username == "test_user"
-    assert coordinator._password == "test_pass"
+    assert coordinator.api_client._username == "test_user"
+    assert coordinator.api_client._password == "test_pass"
     assert coordinator._cookies is None
     assert coordinator.account_name is None
 
 
 async def test_async_update_data_success(hass):
-    """Test async_update_data method with success."""
+    """Test _async_update_data method with success."""
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     
-    # Mock the authenticate and fetch_devices_page methods
-    with patch.object(coordinator, 'authenticate') as mock_authenticate, \
-         patch.object(coordinator, 'fetch_devices_page') as mock_fetch_devices, \
-         patch.object(coordinator, '_extract_devices_arr_from_html') as mock_extract_arr, \
-         patch.object(coordinator, '_extract_device_list') as mock_extract_list:
+    # Mock the API client method
+    with patch.object(coordinator.api_client, 'async_get_devices_data', return_value=[{"id": 1, "name": "Test Device"}]):
+        result = await coordinator._async_update_data()
         
-        mock_fetch_devices.return_value = "<html>devices page</html>"
-        mock_extract_arr.return_value = "devices array"
-        mock_extract_list.return_value = [{"id": 1, "name": "Test Device"}]
-        
-        result = await coordinator.async_update_data()
-        
-        mock_authenticate.assert_called_once()
-        mock_fetch_devices.assert_called_once()
-        mock_extract_arr.assert_called_once_with("<html>devices page</html>")
-        mock_extract_list.assert_called_once_with("devices array", "<html>devices page</html>")
         assert result == [{"id": 1, "name": "Test Device"}]
 
 
 async def test_async_update_data_exception(hass):
-    """Test async_update_data method with exception."""
+    """Test _async_update_data method with exception."""
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     
-    # Mock the authenticate method to raise an exception
-    with patch.object(coordinator, 'authenticate', side_effect=Exception("Test error")):
-        result = await coordinator.async_update_data()
-        
-        assert result is None
+    # Mock the API client method to raise an exception
+    with patch.object(coordinator.api_client, 'async_get_devices_data', side_effect=Exception("Test error")):
+        with pytest.raises(Exception):
+            await coordinator._async_update_data()
 
 
 async def test_authenticate_method(hass, aioclient_mock):
@@ -70,7 +57,7 @@ async def test_authenticate_method(hass, aioclient_mock):
     
     # Mock the response objects properly
     mock_response = AsyncMock()
-    mock_response.text = AsyncMock(return_value=login_html)
+    mock_response.text = login_html  # Return string directly, not coroutine
     mock_response.cookies = {"session": "test_session"}
     
     mock_session.get.return_value.__aenter__.return_value = mock_response
@@ -94,7 +81,7 @@ async def test_fetch_devices_page_method(hass, aioclient_mock):
     # Mock the devices page response
     devices_html = "<html><body>Devices page content</body></html>"
     mock_response = AsyncMock()
-    mock_response.text = AsyncMock(return_value=devices_html)
+    mock_response.text = devices_html  # Return string directly, not coroutine
     
     mock_session.get.return_value.__aenter__.return_value = mock_response
     
@@ -134,7 +121,7 @@ def test_extract_device_list_method_success(hass):
     """Test coordinator extract_device_list method with success."""
     coordinator = EasylogCloudCoordinator(hass, "test", "test")
     
-    # Mock devices JS with proper device data
+    # Mock devices JS with proper device data that matches the regex pattern
     devices_js = """
     new Device(1, 'test', 'EL-USB-TC', 'Test Device', 'AA:BB:CC:DD:EE:FF', 
                'test_location', 'test_group', 'test_notes', 'test_alerts', 
@@ -145,7 +132,7 @@ def test_extract_device_list_method_success(hass):
                'test_permissions', 'test_roles', 'test_users', 'test_groups', 
                '-50', 'test_ssid', 'test_bssid', 'test_channel', 'test_frequency', 
                'test_bandwidth', 'test_security', 'test_password', 'test_psk', 
-               '01/01/2024 12:00:00', [new Channel('Temperature', '25.5', '°C')])
+               '01/01/2024 12:00:00', [new Channel('Temperature', '25.5', '°C'), new Channel('Humidity', '60', '%')])
     """
     
     html = """
@@ -211,7 +198,7 @@ def test_extract_device_list_method_invalid_date(hass):
                'test_permissions', 'test_roles', 'test_users', 'test_groups', 
                '-50', 'test_ssid', 'test_bssid', 'test_channel', 'test_frequency', 
                'test_bandwidth', 'test_security', 'test_password', 'test_psk', 
-               'invalid_date', [new Channel('Temperature', '25.5', '°C')])
+               'invalid_date', [new Channel('Temperature', '25.5', '°C'), new Channel('Humidity', '60', '%')])
     """
     
     html = "<html></html>"
@@ -238,7 +225,7 @@ def test_extract_device_list_method_no_username(hass):
                'test_permissions', 'test_roles', 'test_users', 'test_groups', 
                '-50', 'test_ssid', 'test_bssid', 'test_channel', 'test_frequency', 
                'test_bandwidth', 'test_security', 'test_password', 'test_psk', 
-               '01/01/2024 12:00:00', [new Channel('Temperature', '25.5', '°C')])
+               '01/01/2024 12:00:00', [new Channel('Temperature', '25.5', '°C'), new Channel('Humidity', '60', '%')])
     """
     
     html = "<html><body>No username span here</body></html>"
@@ -267,7 +254,7 @@ async def test_coordinator_with_session(hass, aioclient_mock):
     
     # Mock the response objects properly
     mock_response = AsyncMock()
-    mock_response.text = AsyncMock(return_value=login_html)
+    mock_response.text = login_html  # Return string directly, not coroutine
     mock_response.cookies = {"session": "test_session"}
     
     mock_session.get.return_value.__aenter__.return_value = mock_response
@@ -291,7 +278,7 @@ async def test_coordinator_fetch_devices_with_session(hass, aioclient_mock):
     # Mock the devices page response
     devices_html = "<html><body>Devices page content</body></html>"
     mock_response = AsyncMock()
-    mock_response.text = AsyncMock(return_value=devices_html)
+    mock_response.text = devices_html  # Return string directly, not coroutine
     
     mock_session.get.return_value.__aenter__.return_value = mock_response
     
@@ -300,7 +287,5 @@ async def test_coordinator_fetch_devices_with_session(hass, aioclient_mock):
     
     result = await coordinator.fetch_devices_page()
     
-    # Get the actual text value from the mock
-    actual_text = await mock_response.text()
-    assert actual_text == devices_html
+    assert result == devices_html
     assert mock_session.get.called 
