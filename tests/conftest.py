@@ -49,7 +49,7 @@ async def mock_hass_aiohttp_fixture():
     we replace the helper with an ``AsyncMock`` returning a dummy session for the
     entire test run.
     """
-    from unittest.mock import AsyncMock, patch
+    from unittest.mock import AsyncMock
 
     async_mock_session = AsyncMock()
 

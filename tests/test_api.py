@@ -1,14 +1,10 @@
 """Tests for Home Assistant EasyLog Cloud api."""
-import json
 from datetime import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-import aiohttp
 import pytest
-import xmltodict
-from bs4 import BeautifulSoup
 
 from custom_components.ha_easylog_cloud.api import (
     HAEasylogCloudApiClient,

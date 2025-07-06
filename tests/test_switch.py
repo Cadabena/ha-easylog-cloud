@@ -1,7 +1,4 @@
 """Test Home Assistant EasyLog Cloud switch."""
-from unittest.mock import call
-from unittest.mock import patch
-
 from custom_components.ha_easylog_cloud.const import (
     DOMAIN,
 )

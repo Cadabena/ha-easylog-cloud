@@ -31,6 +31,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async_add_entities(entities)
 
+
 class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator, device, label, data):
         super().__init__(coordinator)
@@ -127,14 +128,14 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
         # Get the latest device info from coordinator data
         device = next((d for d in self.coordinator.data if d["id"] == self.device_id), None)
         if device:
-            return {
-                "identifiers": {(DOMAIN, self.device_id),},
-                "name": device["name"],
-                "manufacturer": "Lascar Electronics",
-                "model": device["model"],
-            }
+                    return {
+            "identifiers": {(DOMAIN, self.device_id), },
+            "name": device["name"],
+            "manufacturer": "Lascar Electronics",
+            "model": device["model"],
+        }
         return {
-            "identifiers": {(DOMAIN, self.device_id),},
+            "identifiers": {(DOMAIN, self.device_id), },
             "name": f"Device {self.device_id}",
             "manufacturer": "Lascar Electronics",
         }

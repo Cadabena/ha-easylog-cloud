@@ -1,8 +1,5 @@
 """Test Home Assistant EasyLog Cloud sensor."""
 from datetime import datetime
-from datetime import timezone
-from unittest.mock import patch
-
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.entity import EntityCategory
 from pytest_homeassistant_custom_component.common import MockConfigEntry
