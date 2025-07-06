@@ -27,14 +27,18 @@ class HAEasylogCloudApiClient:
             devices_js = self._extract_devices_arr_from_html(html)
             device_list = self._extract_device_list(devices_js, html)
             if not device_list:
-                _LOGGER.error("No devices found in device_list! devices_js: %s", devices_js)
+                _LOGGER.error(
+                    "No devices found in device_list! devices_js: %s", devices_js
+                )
             # Now fetch live data for each device
             live_devices = []
             for device in device_list:
                 device_id = device["id"]
                 url = f"https://www.easylogcloud.com/devicedata.asmx/currentStatus?index=1&sensorId={device_id}"
                 headers = {"Accept": "application/json"}
-                async with self._session.get(url, cookies=self._cookies, headers=headers) as resp:
+                async with self._session.get(
+                    url, cookies=self._cookies, headers=headers
+                ) as resp:
                     try:
                         data = await resp.json()
                     except Exception:
@@ -42,20 +46,31 @@ class HAEasylogCloudApiClient:
                         try:
                             data = xmltodict.parse(text)
                         except Exception:
-                            _LOGGER.error("API did not return JSON or valid XML. Response text: %s", text)
+                            _LOGGER.error(
+                                "API did not return JSON or valid XML. Response text: %s",
+                                text,
+                            )
                             continue
                         # Try to extract JSON from inside the XML (common for .NET web services)
                         # Look for a key like 'string' or similar
-                        if isinstance(data, dict) and 'string' in data:
+                        if isinstance(data, dict) and "string" in data:
                             import json
+
                             try:
-                                data = json.loads(data['string'])
+                                data = json.loads(data["string"])
                             except Exception:
-                                _LOGGER.error("Failed to parse JSON from XML 'string' node: %s", data['string'])
+                                _LOGGER.error(
+                                    "Failed to parse JSON from XML 'string' node: %s",
+                                    data["string"],
+                                )
                                 continue
                 d = data.get("d") or data.get("deviceStatus") or {}
                 if not d:
-                    _LOGGER.error("No data returned from API for device %s! Response: %s", device_id, data)
+                    _LOGGER.error(
+                        "No data returned from API for device %s! Response: %s",
+                        device_id,
+                        data,
+                    )
                 # Build device data structure
                 mac_addr = device.get("MAC Address") or {"value": ""}
                 firmware = device.get("Firmware Version") or {"value": ""}
@@ -76,15 +91,24 @@ class HAEasylogCloudApiClient:
                     "name": d.get("sensorName", device["name"]),
                     "model": device["model"],
                     "MAC Address": {"value": mac_addr.get("value", ""), "unit": ""},
-                    "Firmware Version": {"value": d.get("firmwareVersion", firmware.get("value", "")), "unit": ""},
+                    "Firmware Version": {
+                        "value": d.get("firmwareVersion", firmware.get("value", "")),
+                        "unit": "",
+                    },
                     "SSID": {"value": ssid.get("value", ""), "unit": ""},
-                    "WiFi Signal": {"value": d.get("rssi", wifi_signal.get("value", "")), "unit": None},
+                    "WiFi Signal": {
+                        "value": d.get("rssi", wifi_signal.get("value", "")),
+                        "unit": None,
+                    },
                     "Last Updated": {"value": last_comm_dt, "unit": ""},
                 }
                 # Add channels
                 channels = []
                 if "channels" in d:
-                    if isinstance(d["channels"], dict) and "channelDetails" in d["channels"]:
+                    if (
+                        isinstance(d["channels"], dict)
+                        and "channelDetails" in d["channels"]
+                    ):
                         details = d["channels"]["channelDetails"]
                         if isinstance(details, list):
                             channels = details
@@ -105,16 +129,22 @@ class HAEasylogCloudApiClient:
                         except (ValueError, TypeError):
                             value = None
                     # Convert invalid values like '--.--' to None
-                    if value in ['--.--', '---', 'N/A', '']:
+                    if value in ["--.--", "---", "N/A", ""]:
                         value = None
                     device_data[label] = {"value": value, "unit": unit}
                 # Defensive check: ensure 'Last Updated' is always a datetime or None
-                if not (device_data["Last Updated"]["value"] is None or hasattr(device_data["Last Updated"]["value"], "tzinfo")):
+                if not (
+                    device_data["Last Updated"]["value"] is None
+                    or hasattr(device_data["Last Updated"]["value"], "tzinfo")
+                ):
                     device_data["Last Updated"]["value"] = None
                 live_devices.append(device_data)
             if not live_devices:
                 _LOGGER.error("No live devices found! device_list: %s", device_list)
-            _LOGGER.debug("API client update complete. Found %d devices with data", len(live_devices))
+            _LOGGER.debug(
+                "API client update complete. Found %d devices with data",
+                len(live_devices),
+            )
             return live_devices
         except Exception as e:
             _LOGGER.error("Failed to fetch device data: %s", e)
@@ -159,7 +189,9 @@ class HAEasylogCloudApiClient:
     def _extract_device_list(self, devices_js: str, html: str):
         devices = []
         # Use regex to match each 'new Device(...)' block
-        device_blocks = re.findall(r'new Device\((.*?\[.*?new Channel.*?\][^)]*)\)', devices_js, re.DOTALL)
+        device_blocks = re.findall(
+            r"new Device\((.*?\[.*?new Channel.*?\][^)]*)\)", devices_js, re.DOTALL
+        )
         for block in device_blocks:
             # Log the device block for debugging
             _LOGGER.error("Device block: %s", block)
@@ -169,17 +201,25 @@ class HAEasylogCloudApiClient:
             # Check for required indexes before using them
             required_indexes = [0, 2, 4, 5, 16, 17, 28, 34]
             if len(device_fields) < max(required_indexes) + 1:
-                _LOGGER.warning("Skipping device, not enough fields: %d found", len(device_fields))
+                _LOGGER.warning(
+                    "Skipping device, not enough fields: %d found", len(device_fields)
+                )
                 continue
             try:
                 device_id = int(device_fields[0].strip())
                 model = device_fields[2].strip("' ")
                 name = device_fields[4].strip("' ")
                 mac = device_fields[5].strip("' ") if len(device_fields) > 5 else ""
-                firmware = device_fields[16].strip("' ") if len(device_fields) > 16 else ""
+                firmware = (
+                    device_fields[16].strip("' ") if len(device_fields) > 16 else ""
+                )
                 ssid = device_fields[17].strip("' ") if len(device_fields) > 17 else ""
-                wifi_signal = device_fields[28].strip() if len(device_fields) > 28 else ""
-                last_sync_raw = device_fields[34].strip("' ") if len(device_fields) > 34 else ""
+                wifi_signal = (
+                    device_fields[28].strip() if len(device_fields) > 28 else ""
+                )
+                last_sync_raw = (
+                    device_fields[34].strip("' ") if len(device_fields) > 34 else ""
+                )
                 try:
                     dt = datetime.datetime.strptime(last_sync_raw, "%d/%m/%Y %H:%M:%S")
                     last_sync = dt_util.as_local(dt)
@@ -212,4 +252,4 @@ class HAEasylogCloudApiClient:
 
     async def api_wrapper(self, method, url):
         # Stub method for API wrapper
-        return None 
+        return None

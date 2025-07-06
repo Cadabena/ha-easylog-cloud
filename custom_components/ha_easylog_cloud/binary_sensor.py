@@ -68,6 +68,4 @@ class EasylogCloudBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
     @property
     def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.device["id"])}
-        }
+        return {"identifiers": {(DOMAIN, self.device["id"])}}

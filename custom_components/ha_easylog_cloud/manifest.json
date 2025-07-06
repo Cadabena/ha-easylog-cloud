@@ -1,7 +1,9 @@
 {
   "domain": "ha_easylog_cloud",
   "name": "EasyLog Cloud",
-  "codeowners": ["@Cadabena"],
+  "codeowners": [
+    "@Cadabena"
+  ],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://gitlab.com/Cadabena/ha-easylog-cloud",

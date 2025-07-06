@@ -20,13 +20,19 @@ async def async_setup_entry(hass, entry, async_add_entities):
     _LOGGER.debug("Coordinator data: %s", coordinator.data)
 
     for device in coordinator.data:
-        _LOGGER.warning("Available fields for %s: %s", device["name"], list(device.keys()))
+        _LOGGER.warning(
+            "Available fields for %s: %s", device["name"], list(device.keys())
+        )
         for label, data in device.items():
             if label in ("id", "name", "model"):
                 continue
-            _LOGGER.error("Adding sensor for device '%s': %s = %s %s",
-                          device["name"], label, data.get("value") if isinstance(data, dict) else data,
-                          data.get("unit") if isinstance(data, dict) else "")
+            _LOGGER.error(
+                "Adding sensor for device '%s': %s = %s %s",
+                device["name"],
+                label,
+                data.get("value") if isinstance(data, dict) else data,
+                data.get("unit") if isinstance(data, dict) else "",
+            )
             entities.append(EasylogCloudSensor(coordinator, device, label, data))
 
     async_add_entities(entities)
@@ -44,14 +50,23 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
 
         # Fix humidity unit: replace %RH with % (required by HA)
         raw_unit = data.get("unit") if isinstance(data, dict) else None
-        if self._attr_device_class == SensorDeviceClass.HUMIDITY and raw_unit in ("%RH", "RH%"):
+        if self._attr_device_class == SensorDeviceClass.HUMIDITY and raw_unit in (
+            "%RH",
+            "RH%",
+        ):
             self._attr_native_unit_of_measurement = "%"
         elif self._attr_device_class or self._is_numeric_sensor(label):
             self._attr_native_unit_of_measurement = raw_unit
         else:
             self._attr_native_unit_of_measurement = None
 
-        if label.lower() in ["firmware version", "mac address", "ssid", "wi-fi signal", "wifi signal"]:
+        if label.lower() in [
+            "firmware version",
+            "mac address",
+            "ssid",
+            "wi-fi signal",
+            "wifi signal",
+        ]:
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def _guess_device_class(self, label: str):
@@ -86,11 +101,15 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         # Always look up the latest device data from the coordinator
-        device = next((d for d in self.coordinator.data if d["id"] == self.device_id), None)
+        device = next(
+            (d for d in self.coordinator.data if d["id"] == self.device_id), None
+        )
         if device and self.label in device:
             try:
                 value = device[self.label]["value"]
-                _LOGGER.debug("Sensor %s.%s: fetched value %s", self.device_id, self.label, value)
+                _LOGGER.debug(
+                    "Sensor %s.%s: fetched value %s", self.device_id, self.label, value
+                )
                 if self._attr_device_class == SensorDeviceClass.TIMESTAMP and value:
                     # Try to parse the value to a datetime object if it's a string
                     if isinstance(value, str):
@@ -103,7 +122,11 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                             return dt
                         except Exception:
                             # Fallback: try known formats, or return None if parsing fails
-                            _LOGGER.warning("Failed to parse timestamp value '%s' for %s", value, self.label)
+                            _LOGGER.warning(
+                                "Failed to parse timestamp value '%s' for %s",
+                                value,
+                                self.label,
+                            )
                             return None
                     elif isinstance(value, datetime):
                         return value
@@ -114,28 +137,45 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                     try:
                         return float(value)
                     except (TypeError, ValueError):
-                        _LOGGER.warning("Value for %s is not numeric: %s", self.label, value)
+                        _LOGGER.warning(
+                            "Value for %s is not numeric: %s", self.label, value
+                        )
                         return None
                 return value
             except Exception as e:
-                _LOGGER.warning("native_value error for %s on %s: %s", self.label, device.get("name"), e)
+                _LOGGER.warning(
+                    "native_value error for %s on %s: %s",
+                    self.label,
+                    device.get("name"),
+                    e,
+                )
         else:
-            _LOGGER.debug("Sensor %s.%s: device or label not found in coordinator data", self.device_id, self.label)
+            _LOGGER.debug(
+                "Sensor %s.%s: device or label not found in coordinator data",
+                self.device_id,
+                self.label,
+            )
         return None
 
     @property
     def device_info(self):
         # Get the latest device info from coordinator data
-        device = next((d for d in self.coordinator.data if d["id"] == self.device_id), None)
+        device = next(
+            (d for d in self.coordinator.data if d["id"] == self.device_id), None
+        )
         if device:
-                    return {
-            "identifiers": {(DOMAIN, self.device_id), },
-            "name": device["name"],
-            "manufacturer": "Lascar Electronics",
-            "model": device["model"],
-        }
+            return {
+                "identifiers": {
+                    (DOMAIN, self.device_id),
+                },
+                "name": device["name"],
+                "manufacturer": "Lascar Electronics",
+                "model": device["model"],
+            }
         return {
-            "identifiers": {(DOMAIN, self.device_id), },
+            "identifiers": {
+                (DOMAIN, self.device_id),
+            },
             "name": f"Device {self.device_id}",
             "manufacturer": "Lascar Electronics",
         }

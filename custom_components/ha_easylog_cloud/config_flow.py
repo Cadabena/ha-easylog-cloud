@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import logging
+
 import voluptuous as vol
 from homeassistant import config_entries
 
-from .api import HAEasylogCloudApiClient  # noqa: E402  (import after top-level for tests)
-from .const import DOMAIN, CONF_USERNAME, CONF_PASSWORD
+from .api import (
+    HAEasylogCloudApiClient,
+)  # noqa: E402  (import after top-level for tests)
+from .const import CONF_PASSWORD
+from .const import CONF_USERNAME
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,7 +50,9 @@ class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def _test_credentials(self, username: str, password: str) -> tuple[bool, str | None]:
+    async def _test_credentials(
+        self, username: str, password: str
+    ) -> tuple[bool, str | None]:
         try:
             api_client = HAEasylogCloudApiClient(self.hass, username, password)
             await api_client.authenticate()

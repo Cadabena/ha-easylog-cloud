@@ -43,6 +43,7 @@ async def async_reload_entry(hass, entry):
     """Stub for async_reload_entry."""
     return None
 
+
 # Alias for test compatibility
 HAEasylogCloudDataUpdateCoordinator = EasylogCloudCoordinator
 

@@ -1,11 +1,17 @@
 """Tests for the EasylogCloud config flow."""
-from unittest.mock import AsyncMock, MagicMock, patch
+
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.ha_easylog_cloud.const import DOMAIN, CONF_USERNAME, CONF_PASSWORD
 from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+from custom_components.ha_easylog_cloud.const import CONF_PASSWORD
+from custom_components.ha_easylog_cloud.const import CONF_USERNAME
+from custom_components.ha_easylog_cloud.const import DOMAIN
 
 
 async def test_flow_user(hass: HomeAssistant) -> None:
@@ -26,7 +32,9 @@ async def test_flow_user_invalid_auth(hass: HomeAssistant) -> None:
     )
 
     # Mock the API client to fail authentication
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock(side_effect=Exception("Auth failed"))
         mock_api.return_value = mock_instance
@@ -47,12 +55,16 @@ async def test_flow_user_valid_auth(hass: HomeAssistant) -> None:
     )
 
     # Mock the API client to succeed
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
         mock_instance._extract_devices_arr_from_html = MagicMock(return_value="test")
-        mock_instance._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+        mock_instance._extract_device_list = MagicMock(
+            return_value=[{"id": 1, "name": "Test Device"}]
+        )
         mock_instance.account_name = "test_user"
         mock_api.return_value = mock_instance
 
@@ -76,12 +88,16 @@ async def test_flow_user_no_account_name(hass: HomeAssistant) -> None:
     )
 
     # Mock the API client to succeed but no account name
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
         mock_instance._extract_devices_arr_from_html = MagicMock(return_value="test")
-        mock_instance._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+        mock_instance._extract_device_list = MagicMock(
+            return_value=[{"id": 1, "name": "Test Device"}]
+        )
         mock_instance.account_name = None
         mock_api.return_value = mock_instance
 
@@ -105,7 +121,9 @@ async def test_flow_user_no_devices(hass: HomeAssistant) -> None:
     )
 
     # Mock the API client to succeed but no devices
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
@@ -134,10 +152,14 @@ async def test_flow_user_fetch_devices_failure(hass: HomeAssistant) -> None:
     )
 
     # Mock the API client with fetch_devices_page failure
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
-        mock_instance.fetch_devices_page = AsyncMock(side_effect=Exception("Fetch failed"))
+        mock_instance.fetch_devices_page = AsyncMock(
+            side_effect=Exception("Fetch failed")
+        )
         mock_api.return_value = mock_instance
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -156,11 +178,15 @@ async def test_flow_user_extract_devices_failure(hass: HomeAssistant) -> None:
     )
 
     # Mock the API client with extract_devices_arr_from_html failure
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
-        mock_instance._extract_devices_arr_from_html = MagicMock(side_effect=Exception("Extract failed"))
+        mock_instance._extract_devices_arr_from_html = MagicMock(
+            side_effect=Exception("Extract failed")
+        )
         mock_api.return_value = mock_instance
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -179,12 +205,16 @@ async def test_flow_user_extract_device_list_failure(hass: HomeAssistant) -> Non
     )
 
     # Mock the API client with extract_device_list failure
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
         mock_instance._extract_devices_arr_from_html = MagicMock(return_value="test")
-        mock_instance._extract_device_list = MagicMock(side_effect=Exception("Extract failed"))
+        mock_instance._extract_device_list = MagicMock(
+            side_effect=Exception("Extract failed")
+        )
         mock_api.return_value = mock_instance
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -202,12 +232,16 @@ async def test_test_credentials_success(hass):
     flow.hass = hass
 
     # Mock the API client to succeed
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
         mock_instance._extract_devices_arr_from_html = MagicMock(return_value="test")
-        mock_instance._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+        mock_instance._extract_device_list = MagicMock(
+            return_value=[{"id": 1, "name": "Test Device"}]
+        )
         mock_instance.account_name = "test_user"
         mock_api.return_value = mock_instance
 
@@ -223,12 +257,16 @@ async def test_test_credentials_success_no_account_name(hass):
     flow.hass = hass
 
     # Mock the API client to succeed but no account name
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
         mock_instance._extract_devices_arr_from_html = MagicMock(return_value="test")
-        mock_instance._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+        mock_instance._extract_device_list = MagicMock(
+            return_value=[{"id": 1, "name": "Test Device"}]
+        )
         mock_instance.account_name = None
         mock_api.return_value = mock_instance
 
@@ -244,7 +282,9 @@ async def test_test_credentials_failure(hass):
     flow.hass = hass
 
     # Mock the API client to fail
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock(side_effect=Exception("Auth failed"))
         mock_api.return_value = mock_instance
@@ -274,12 +314,16 @@ async def test_flow_with_valid_credentials(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
         mock_instance._extract_devices_arr_from_html = MagicMock(return_value="test")
-        mock_instance._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+        mock_instance._extract_device_list = MagicMock(
+            return_value=[{"id": 1, "name": "Test Device"}]
+        )
         mock_instance.account_name = "test_user"
         mock_api.return_value = mock_instance
 
@@ -298,7 +342,9 @@ async def test_flow_with_invalid_credentials(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock(side_effect=Exception("Auth failed"))
         mock_api.return_value = mock_instance
@@ -318,12 +364,16 @@ async def test_flow_with_no_account_name(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
         mock_instance._extract_devices_arr_from_html = MagicMock(return_value="test")
-        mock_instance._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+        mock_instance._extract_device_list = MagicMock(
+            return_value=[{"id": 1, "name": "Test Device"}]
+        )
         mock_instance.account_name = None
         mock_api.return_value = mock_instance
 
@@ -342,7 +392,9 @@ async def test_flow_with_no_devices(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
@@ -366,10 +418,14 @@ async def test_flow_with_fetch_devices_failure(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
-        mock_instance.fetch_devices_page = AsyncMock(side_effect=Exception("Fetch failed"))
+        mock_instance.fetch_devices_page = AsyncMock(
+            side_effect=Exception("Fetch failed")
+        )
         mock_api.return_value = mock_instance
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -387,11 +443,15 @@ async def test_flow_with_extract_devices_failure(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
-        mock_instance._extract_devices_arr_from_html = MagicMock(side_effect=Exception("Extract failed"))
+        mock_instance._extract_devices_arr_from_html = MagicMock(
+            side_effect=Exception("Extract failed")
+        )
         mock_api.return_value = mock_instance
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -409,12 +469,16 @@ async def test_flow_with_extract_device_list_failure(hass: HomeAssistant) -> Non
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient') as mock_api:
+    with patch(
+        "custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient"
+    ) as mock_api:
         mock_instance = AsyncMock()
         mock_instance.authenticate = AsyncMock()
         mock_instance.fetch_devices_page = AsyncMock(return_value="<html></html>")
         mock_instance._extract_devices_arr_from_html = MagicMock(return_value="test")
-        mock_instance._extract_device_list = MagicMock(side_effect=Exception("Extract failed"))
+        mock_instance._extract_device_list = MagicMock(
+            side_effect=Exception("Extract failed")
+        )
         mock_api.return_value = mock_instance
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -424,6 +488,3 @@ async def test_flow_with_extract_device_list_failure(hass: HomeAssistant) -> Non
 
     assert result2["type"] == FlowResultType.FORM
     assert result2["errors"] == {"base": "auth"}
-
-
-
