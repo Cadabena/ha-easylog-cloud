@@ -1,14 +1,16 @@
 """API client for EasyLog Cloud integration (stub)."""
 
+import datetime
 import logging
 import re
-import datetime
-from bs4 import BeautifulSoup
+
 import xmltodict
+from bs4 import BeautifulSoup
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import dt as dt_util
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class HAEasylogCloudApiClient:
     def __init__(self, hass, username, password):

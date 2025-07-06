@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import logging
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from datetime import datetime
+from datetime import timezone
+
+from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import EntityCategory
-from datetime import datetime, timezone
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]

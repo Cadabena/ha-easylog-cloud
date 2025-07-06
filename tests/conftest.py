@@ -62,7 +62,6 @@ async def mock_hass_aiohttp_fixture():
 # can be instantiated without reading a real manifest.
 # -----------------------------------------------------------------------------
 
-import asyncio
 
 @pytest.fixture(autouse=True)
 def mock_hass_loader():
@@ -77,7 +76,6 @@ def mock_hass_loader():
 
     fake_integration = MagicMock(spec=Integration)
     fake_integration.domain = INTEGRATION_DOMAIN
-    fake_map = {INTEGRATION_DOMAIN: fake_integration}
 
     async def _get_integration(hass, domain):  # pylint: disable=unused-argument
         return fake_integration

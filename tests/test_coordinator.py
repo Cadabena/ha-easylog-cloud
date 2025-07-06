@@ -1,8 +1,12 @@
 """Test Home Assistant EasyLog Cloud coordinator."""
-from unittest.mock import patch, AsyncMock, MagicMock
-import pytest
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 import aiohttp
+import pytest
 
 from custom_components.ha_easylog_cloud.coordinator import EasylogCloudCoordinator
 from custom_components.ha_easylog_cloud.const import DOMAIN

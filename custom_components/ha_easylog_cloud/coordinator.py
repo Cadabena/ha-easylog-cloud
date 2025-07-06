@@ -1,21 +1,22 @@
 from __future__ import annotations
 
+import datetime
 import logging
 import re
-import datetime
 from datetime import timedelta
-from bs4 import BeautifulSoup
-import xmltodict
 
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+import xmltodict
+from bs4 import BeautifulSoup
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
 from .api import HAEasylogCloudApiClient
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class EasylogCloudCoordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, username: str, password: str) -> None:

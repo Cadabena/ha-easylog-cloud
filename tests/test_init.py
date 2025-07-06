@@ -1,6 +1,8 @@
 """Test Home Assistant EasyLog Cloud setup process."""
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from custom_components.ha_easylog_cloud import (
     async_reload_entry,
 )

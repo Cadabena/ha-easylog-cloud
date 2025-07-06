@@ -2,3 +2,6 @@ homeassistant
 aiohttp
 beautifulsoup4
 xmltodict
+black
+flake8
+click<23.0

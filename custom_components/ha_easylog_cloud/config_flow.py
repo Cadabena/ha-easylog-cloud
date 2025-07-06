@@ -3,16 +3,12 @@ from __future__ import annotations
 import logging
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import callback
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .coordinator import EasylogCloudCoordinator
+from .api import HAEasylogCloudApiClient  # noqa: E402  (import after top-level for tests)
 from .const import DOMAIN, CONF_USERNAME, CONF_PASSWORD
 
-# Expose the API client at module level so tests can patch
-from .api import HAEasylogCloudApiClient  # noqa: E402  (import after top-level for tests)
-
 _LOGGER = logging.getLogger(__name__)
+
 
 class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
@@ -55,7 +51,7 @@ class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await api_client.authenticate()
             html = await api_client.fetch_devices_page()
             devices_js = api_client._extract_devices_arr_from_html(html)
-            device_list = api_client._extract_device_list(devices_js, html)
+            api_client._extract_device_list(devices_js, html)
 
             if api_client.account_name:
                 return True, api_client.account_name
