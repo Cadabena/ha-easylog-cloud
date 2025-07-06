@@ -1,5 +1,4 @@
 """API client for EasyLog Cloud integration (stub)."""
-
 import datetime
 import logging
 import re

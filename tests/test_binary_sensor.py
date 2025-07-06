@@ -1,5 +1,4 @@
 """Test Home Assistant EasyLog Cloud binary sensor."""
-
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 

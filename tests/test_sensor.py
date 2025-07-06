@@ -1,5 +1,4 @@
 """Test Home Assistant EasyLog Cloud sensor."""
-
 from datetime import datetime
 
 from homeassistant.components.sensor import SensorDeviceClass
