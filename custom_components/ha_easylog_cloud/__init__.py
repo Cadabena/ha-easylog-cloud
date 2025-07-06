@@ -7,6 +7,7 @@ from homeassistant.core import HomeAssistant
 
 from .coordinator import EasylogCloudCoordinator
 from .const import DOMAIN, PLATFORMS
+from .api import HAEasylogCloudApiClient
 
 _LOGGER = logging.getLogger(__name__)
 
