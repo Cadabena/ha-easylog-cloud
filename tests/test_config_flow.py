@@ -2,19 +2,19 @@
 from unittest.mock import patch
 
 import pytest
-from custom_components.ha-easylog-cloud.const import (
+from custom_components.ha_easylog_cloud.const import (
     BINARY_SENSOR,
 )
-from custom_components.ha-easylog-cloud.const import (
+from custom_components.ha_easylog_cloud.const import (
     DOMAIN,
 )
-from custom_components.ha-easylog-cloud.const import (
+from custom_components.ha_easylog_cloud.const import (
     PLATFORMS,
 )
-from custom_components.ha-easylog-cloud.const import (
+from custom_components.ha_easylog_cloud.const import (
     SENSOR,
 )
-from custom_components.ha-easylog-cloud.const import (
+from custom_components.ha_easylog_cloud.const import (
     SWITCH,
 )
 from homeassistant import config_entries
@@ -30,8 +30,8 @@ from .const import MOCK_CONFIG
 @pytest.fixture(autouse=True)
 def bypass_setup_fixture():
     """Prevent setup."""
-    with patch("custom_components.ha-easylog-cloud.async_setup", return_value=True,), patch(
-        "custom_components.ha-easylog-cloud.async_setup_entry",
+    with patch("custom_components.ha_easylog_cloud.async_setup", return_value=True,), patch(
+        "custom_components.ha_easylog_cloud.async_setup_entry",
         return_value=True,
     ):
         yield

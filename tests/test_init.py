@@ -1,18 +1,18 @@
 """Test Home Assistant EasyLog Cloud setup process."""
 import pytest
-from custom_components.ha-easylog-cloud import (
+from custom_components.ha_easylog_cloud import (
     async_reload_entry,
 )
-from custom_components.ha-easylog-cloud import (
+from custom_components.ha_easylog_cloud import (
     async_setup_entry,
 )
-from custom_components.ha-easylog-cloud import (
+from custom_components.ha_easylog_cloud import (
     async_unload_entry,
 )
-from custom_components.ha-easylog-cloud import (
+from custom_components.ha_easylog_cloud import (
     HAEasylogCloudDataUpdateCoordinator,
 )
-from custom_components.ha-easylog-cloud.const import (
+from custom_components.ha_easylog_cloud.const import (
     DOMAIN,
 )
 from homeassistant.exceptions import ConfigEntryNotReady

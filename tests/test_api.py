@@ -2,7 +2,7 @@
 import asyncio
 
 import aiohttp
-from custom_components.ha-easylog-cloud.api import (
+from custom_components.ha_easylog_cloud.api import (
     HAEasylogCloudApiClient,
 )
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -17,11 +17,11 @@ async def test_api(hass, aioclient_mock, caplog):
     # Use aioclient_mock which is provided by `pytest_homeassistant_custom_components`
     # to mock responses to aiohttp requests. In this case we are telling the mock to
     # return {"test": "test"} when a `GET` call is made to the specified URL. We then
-    # call `async_get_data` which will make that `GET` request.
+    # call `async_get_devices_data` which will make that `GET` request.
     aioclient_mock.get(
         "https://jsonplaceholder.typicode.com/posts/1", json={"test": "test"}
     )
-    assert await api.async_get_data() == {"test": "test"}
+    assert await api.async_get_devices_data() == {"test": "test"}
 
     # We do the same for `async_set_title`. Note the difference in the mock call
     # between the previous step and this one. We use `patch` here instead of `get`

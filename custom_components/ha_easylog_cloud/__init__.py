@@ -39,6 +39,5 @@ async def async_reload_entry(hass, entry):
     """Stub for async_reload_entry."""
     return None
 
-class HAEasylogCloudDataUpdateCoordinator:
-    """Stub for DataUpdateCoordinator (for test compatibility)."""
-    pass
+# Alias for test compatibility
+HAEasylogCloudDataUpdateCoordinator = EasylogCloudCoordinator
