@@ -46,6 +46,7 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
             'is_built_in': False,
             'documentation': None,
             'resolve_dependencies': mock_resolve_dependencies,
+            'dependencies': [],
         })()
         mock_get_integration.return_value = mock_integration
         
