@@ -294,3 +294,56 @@ async def test_api_wrapper(hass):
     result = await api.api_wrapper("get", "https://example.com")
     
     assert result is None
+
+
+async def test_async_get_devices_data_xml_response(hass, mock_session):
+    """Test async_get_devices_data branch that parses XML fallback with embedded JSON and channel details."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
+
+    # Pretend authentication & page fetch succeed
+    api.authenticate = AsyncMock()
+    api.fetch_devices_page = AsyncMock(return_value="<html><body>Devices page</body></html>")
+    # Provide a device stub with minimal required keys
+    api._extract_devices_arr_from_html = MagicMock(return_value="new Device(2, 'test', 'EL-USB-CO2', 'XML Dev')")
+    api._extract_device_list = MagicMock(return_value=[{"id": 2, "name": "XML Dev", "model": "EL-USB-CO2"}])
+
+    # Craft an XML string that wraps JSON in a <string> node (mimics .NET web-service)
+    import json
+    payload_dict = {
+        "d": {
+            "sensorName": "XML Dev",
+            "channels": {
+                "channelDetails": {
+                    "channelLabel": "Temperature",
+                    "reading": "23.0",
+                    "unit": "°C",
+                }
+            },
+            "rssi": -42,
+            "firmwareVersion": "1.0.0",
+            "lastCommFormatted": "01/01/2024 00:00:00",
+        }
+    }
+    xml_payload = f"""<?xml version='1.0' encoding='utf-8'?>\n<string>{json.dumps(payload_dict)}</string>"""
+
+    live_response = AsyncMock()
+    # Force .json() to raise to trigger XML fallback
+    live_response.json = AsyncMock(side_effect=Exception("not json"))
+    live_response.text = AsyncMock(return_value=xml_payload)
+
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = live_response
+
+    # Synchronous MagicMock for session.get so "async with" works already
+    api._session.get = MagicMock(return_value=async_cm)
+
+    result = await api.async_get_devices_data()
+
+    # We expect one device with parsed channel and RSSI
+    assert len(result) == 1
+    dev = result[0]
+    assert dev["name"] == "XML Dev"
+    # channel from xml should be added
+    assert dev["Temperature"]["value"] == 23.0
+    # RSSI passed through
+    assert dev["WiFi Signal"]["value"] == -42

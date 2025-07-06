@@ -44,3 +44,27 @@ async def test_switch_services(hass):
     # Test that the switch setup works
     from custom_components.ha_easylog_cloud.switch import async_setup_entry
     await async_setup_entry(hass, config_entry, lambda entities: None)
+
+
+async def test_switch_turn_on_off(hass):
+    """Directly test EasylogCloudSwitch on/off helpers."""
+    from custom_components.ha_easylog_cloud.switch import EasylogCloudSwitch
+
+    # Dummy coordinator not used in logic
+    mock_coordinator = type("MockCoordinator", (), {"async_write_ha_state": lambda self: None})()
+    device = {"id": 42, "name": "Dev", "model": "Model", "Test Switch": {"value": "off"}}
+
+    sw = EasylogCloudSwitch(mock_coordinator, device, "Test Switch", device["Test Switch"])
+    # Monkeypatch the Entity helper to avoid needing a full HA instance
+    sw.async_write_ha_state = lambda: None
+
+    # Initially off
+    assert sw.is_on is False
+
+    # Turn on
+    await sw.async_turn_on()
+    assert sw.is_on is True
+
+    # Turn off again
+    await sw.async_turn_off()
+    assert sw.is_on is False

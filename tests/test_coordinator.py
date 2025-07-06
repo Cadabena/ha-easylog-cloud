@@ -238,4 +238,16 @@ async def test_coordinator_fetch_devices_with_session(hass, mock_session):
     result = await coordinator.fetch_devices_page()
     
     assert result == devices_html
-    coordinator.api_client.fetch_devices_page.assert_called_once() 
+    coordinator.api_client.fetch_devices_page.assert_called_once()
+
+
+def test_coordinator_proxy_extract_device_list(hass, mock_session):
+    """Ensure coordinator proxy method sets account_name and returns list."""
+    coordinator = EasylogCloudCoordinator(hass, "u", "p")
+
+    devices_js = "new Device(3, 't', 'EL-USB-TC', 'Proxy Device', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '01/01/2024 00:00:00', [new Channel('Temperature', '20', '°C')])"
+    html = """<html><span id='username'>proxy_user</span></html>"""
+
+    result = coordinator._extract_device_list(devices_js, html)
+    assert len(result) == 1
+    assert coordinator.account_name == "proxy_user" 
