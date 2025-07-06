@@ -1,5 +1,4 @@
 """Tests for Home Assistant EasyLog Cloud api."""
-from datetime import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -9,7 +8,6 @@ import pytest
 from custom_components.ha_easylog_cloud.api import (
     HAEasylogCloudApiClient,
 )
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 
 @pytest.fixture
