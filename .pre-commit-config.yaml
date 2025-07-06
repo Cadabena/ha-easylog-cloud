@@ -30,3 +30,6 @@ repos:
     rev: v2.2.1
     hooks:
       - id: prettier
+
+# NOTE: If you use 'set-output' or 'save-state' in custom hooks, migrate to Environment Files as per GitHub Actions deprecation notice.
+# See: https://github.com/github/docs/issues/21335

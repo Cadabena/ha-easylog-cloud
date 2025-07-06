@@ -6,6 +6,8 @@
 [![hacs][hacsbadge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
+A Home Assistant custom component for integrating EasyLog Cloud devices.
+
 Monitor indoor environmental conditions using [Lascar Electronics](https://lascarelectronics.com/) EL-MOTE and EL-WiFi [EasyLog Cloud](https://lascarelectronics.com/software/easylog-software/easylog-cloud/) devices, such as:
 - EL-IOT-CO2
 - EL-WEM+
@@ -29,9 +31,9 @@ This integration pulls data from [EasyLog Cloud](https://easylogcloud.com) via w
 ## Installation
 
 ### Via HACS (recommended)
-1. Go to HACS → Integrations → “+” → Select **“EasyLog Cloud”**
+1. Go to HACS → Integrations → "+" → Select **"EasyLog Cloud"**
 2. Restart Home Assistant
-3. Go to **Settings → Devices & Services → “+” → EasyLog Cloud**
+3. Go to **Settings → Devices & Services → "+" → EasyLog Cloud**
 4. Enter your EasyLog Cloud credentials
 
 ### Manual
@@ -69,3 +71,5 @@ This project was generated using the [Home Assistant Custom Component Cookiecutt
 [license-shield]: https://img.shields.io/github/license/Cadabena/ha-easylog-cloud.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/Cadabena/ha-easylog-cloud.svg?style=for-the-badge
 [releases]: https://gitlab.com/Cadabena/ha-easylog-cloud/releases
+
+**Topics:** home-assistant, easylog, iot, cloud, integration
