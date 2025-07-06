@@ -42,7 +42,7 @@ class EasylogCloudSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, self.device["id"])},
+            "identifiers": {(DOMAIN, self.device["id"])} ,
             "name": self.device["name"],
             "manufacturer": "Lascar Electronics",
             "model": self.device["model"],

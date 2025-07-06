@@ -66,7 +66,7 @@ async def mock_hass_aiohttp_fixture():
 @pytest.fixture(autouse=True)
 def mock_hass_loader():
     """Stub HA loader functions used by config-flows (integrations loading)."""
-    from unittest.mock import MagicMock, patch
+    from unittest.mock import AsyncMock, MagicMock, patch
     try:
         from homeassistant.loader import Integration  # type: ignore
     except Exception:  # pragma: no cover – safety for CI images
