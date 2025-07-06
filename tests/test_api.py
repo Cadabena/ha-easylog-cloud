@@ -416,8 +416,13 @@ async def test_async_get_devices_data_xml_without_string_node(hass, mock_session
     
     result = await api.async_get_devices_data()
     
-    # Should return empty list when no 'string' node found
-    assert result == []
+    # Should return device with empty data when no 'string' node found
+    assert len(result) == 1
+    dev = result[0]
+    assert dev["name"] == "No String Dev"
+    # Device should have basic structure but no channel data
+    assert "id" in dev
+    assert "model" in dev
 
 
 async def test_async_get_devices_data_invalid_json_in_xml(hass, mock_session):
@@ -469,8 +474,13 @@ async def test_async_get_devices_data_no_data_returned(hass, mock_session):
     
     result = await api.async_get_devices_data()
     
-    # Should return empty list when no data returned
-    assert result == []
+    # Should return device with empty data when no data returned
+    assert len(result) == 1
+    dev = result[0]
+    assert dev["name"] == "No Data Dev"
+    # Device should have basic structure but no channel data
+    assert "id" in dev
+    assert "model" in dev
 
 
 async def test_async_get_devices_data_channels_as_list(hass, mock_session):
@@ -602,5 +612,35 @@ async def test_async_get_devices_data_no_live_devices_found(hass, mock_session):
     
     result = await api.async_get_devices_data()
     
-    # Should return empty list when no live devices found
+    # Should return device with empty data when no live devices found
+    assert len(result) == 1
+    dev = result[0]
+    assert dev["name"] == "No Live Dev"
+    # Device should have basic structure but no channel data
+    assert "id" in dev
+    assert "model" in dev
+
+
+async def test_async_get_devices_data_device_processing_continue(hass, mock_session):
+    """Test async_get_devices_data when device processing triggers continue statement."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
+    
+    # Mock the authentication and device fetching
+    api.authenticate = AsyncMock()
+    api.fetch_devices_page = AsyncMock(return_value="<html><body>Devices page</body></html>")
+    api._extract_devices_arr_from_html = MagicMock(return_value="new Device(11, 'test', 'EL-USB-TC', 'Continue Dev')")
+    api._extract_device_list = MagicMock(return_value=[{"id": 11, "name": "Continue Dev", "model": "EL-USB-TC"}])
+    
+    # Mock response that causes an exception during processing
+    live_response = AsyncMock()
+    live_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
+    live_response.text = AsyncMock(side_effect=Exception("Text reading failed"))
+    
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = live_response
+    api._session.get = MagicMock(return_value=async_cm)
+    
+    result = await api.async_get_devices_data()
+    
+    # Should return empty list when device processing fails completely
     assert result == []

@@ -454,7 +454,7 @@ def test_sensor_native_value_exception_handling():
     """Test native_value property with exception handling."""
     from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
     
-    # Create a mock coordinator that raises exception
+    # Create a mock coordinator with data that will cause exception
     mock_coordinator = type('MockCoordinator', (), {
         'data': [{
             "id": 1,
@@ -466,17 +466,21 @@ def test_sensor_native_value_exception_handling():
     
     mock_device = {"id": 1, "name": "Test Device"}
     
-    # Create sensor with data that will cause exception when accessed
+    # Create sensor
     temp_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Temperature", {"value": 25.5})
     
-    # Mock the device lookup to raise an exception
-    def mock_next_with_exception(*args, **kwargs):
-        raise Exception("Test exception")
+    # Create a device dict that raises exception when accessing nested data
+    class ExceptionDevice:
+        def __getitem__(self, key):
+            if key == "Temperature":
+                raise Exception("Test exception")
+            return {"value": 25.5}
     
-    # Patch the next function to raise exception
-    with patch('builtins.next', side_effect=mock_next_with_exception):
-        result = temp_sensor.native_value
-        assert result is None
+    # Replace the device in coordinator data
+    mock_coordinator.data[0] = ExceptionDevice()
+    
+    result = temp_sensor.native_value
+    assert result is None
 
 
 def test_sensor_native_value_device_not_found():
