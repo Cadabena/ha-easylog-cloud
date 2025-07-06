@@ -57,18 +57,34 @@ async def mock_hass_aiohttp_fixture():
         yield
 
 
-@pytest.fixture(name="mock_hass_loader", autouse=True)
-async def mock_hass_loader_fixture():
-    """Prevent IntegrationNotFound errors when Home Assistant looks up metadata.
+# -----------------------------------------------------------------------------
+# Global patch: make Home Assistant think our integration exists so config-flow
+# can be instantiated without reading a real manifest.
+# -----------------------------------------------------------------------------
 
-    The config-flow helper ``async_get_integration`` expects the integration to be
-    discoverable via Home Assistant's loader.  We stub this call so the config
-    flow under test does not depend on the actual manifest on disk.
-    """
+import asyncio
+
+@pytest.fixture(autouse=True)
+def mock_hass_loader():
+    """Stub HA loader functions used by config-flows (integrations loading)."""
     from unittest.mock import AsyncMock, MagicMock, patch
+    try:
+        from homeassistant.loader import Integration  # type: ignore
+    except Exception:  # pragma: no cover – safety for CI images
+        Integration = object  # fallback, not used
 
-    mock_integration = MagicMock()
-    mock_integration.single_config_entry = False
+    fake_integration = MagicMock(spec=Integration)
+    fake_integration.domain = "easylog_cloud"
+    fake_map = {"easylog_cloud": fake_integration}
 
-    with patch("homeassistant.loader.async_get_integration", new=AsyncMock(return_value=mock_integration)):
+    async def _get_integration(hass, domain):  # pylint: disable=unused-argument
+        return fake_integration
+
+    async def _get_integrations(hass, domains):  # pylint: disable=unused-argument
+        return {d: fake_integration for d in domains}
+
+    with (
+        patch("homeassistant.loader.async_get_integration", new=_get_integration),
+        patch("homeassistant.loader.async_get_integrations", new=_get_integrations),
+    ):
         yield

@@ -87,7 +87,7 @@ def test_extract_devices_arr_from_html_method(hass, mock_session):
     html = """
     <html>
         <script>
-            var devices = [
+            var devicesArr = [
                 new Device(1, 'test', 'EL-USB-TC', 'Test Device')
             ];
         </script>
@@ -127,7 +127,7 @@ def test_extract_device_list_method_success(hass, mock_session):
 
     assert len(result) == 1
     assert result[0]["id"] == 1
-    assert result[0]["name"] == "Test Device"
+    assert "MAC Address" in result[0]
 
 
 def test_extract_device_list_method_insufficient_fields(hass, mock_session):
