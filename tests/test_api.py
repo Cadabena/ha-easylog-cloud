@@ -958,8 +958,13 @@ async def test_async_get_devices_data_no_data_returned_for_device(hass, mock_ses
         mock_response = AsyncMock()
         mock_response.json = AsyncMock(return_value={})  # No 'd' or 'deviceStatus' key
         
+        # Create async context manager mock with proper awaitable methods
+        async_cm = AsyncMock()
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
+        
         session = mock_session
-        session.get = AsyncMock(return_value=mock_response)
+        session.get = AsyncMock(return_value=async_cm)
         
         result = await api.async_get_devices_data()
         
@@ -987,8 +992,13 @@ async def test_async_get_devices_data_xml_parsing_exception(hass, mock_session):
         mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
         mock_response.text = AsyncMock(return_value="invalid xml content")
         
+        # Create async context manager mock with proper awaitable methods
+        async_cm = AsyncMock()
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
+        
         session = mock_session
-        session.get = AsyncMock(return_value=mock_response)
+        session.get = AsyncMock(return_value=async_cm)
         
         result = await api.async_get_devices_data()
         
@@ -1016,8 +1026,13 @@ async def test_async_get_devices_data_json_from_xml_string_failure(hass, mock_se
         mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
         mock_response.text = AsyncMock(return_value="<xml><string>invalid json</string></xml>")
         
+        # Create async context manager mock with proper awaitable methods
+        async_cm = AsyncMock()
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
+        
         session = mock_session
-        session.get = AsyncMock(return_value=mock_response)
+        session.get = AsyncMock(return_value=async_cm)
         
         result = await api.async_get_devices_data()
         
@@ -1045,8 +1060,13 @@ async def test_async_get_devices_data_xml_without_string_node_new(hass, mock_ses
         mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
         mock_response.text = AsyncMock(return_value="<xml><other>data</other></xml>")
         
+        # Create async context manager mock with proper awaitable methods
+        async_cm = AsyncMock()
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
+        
         session = mock_session
-        session.get = AsyncMock(return_value=mock_response)
+        session.get = AsyncMock(return_value=async_cm)
         
         result = await api.async_get_devices_data()
         
@@ -1074,8 +1094,13 @@ async def test_async_get_devices_data_xml_not_dict(hass, mock_session):
         mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
         mock_response.text = AsyncMock(return_value="<xml>simple text</xml>")
         
+        # Create async context manager mock with proper awaitable methods
+        async_cm = AsyncMock()
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
+        
         session = mock_session
-        session.get = AsyncMock(return_value=mock_response)
+        session.get = AsyncMock(return_value=async_cm)
         
         result = await api.async_get_devices_data()
         
@@ -1102,10 +1127,10 @@ async def test_async_get_devices_data_no_data_returned_specific(hass, mock_sessi
         mock_response = AsyncMock()
         mock_response.json = AsyncMock(return_value={})  # Empty response, no 'd' or 'deviceStatus'
         
-        # Create async context manager mock
+        # Create async context manager mock with proper awaitable methods
         async_cm = AsyncMock()
-        async_cm.__aenter__.return_value = mock_response
-        async_cm.__aexit__.return_value = None
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
         
         session = mock_session
         session.get = AsyncMock(return_value=async_cm)
@@ -1136,10 +1161,10 @@ async def test_async_get_devices_data_xml_parsing_failure_specific(hass, mock_se
         mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
         mock_response.text = AsyncMock(return_value="invalid xml content that will fail parsing")
         
-        # Create async context manager mock
+        # Create async context manager mock with proper awaitable methods
         async_cm = AsyncMock()
-        async_cm.__aenter__.return_value = mock_response
-        async_cm.__aexit__.return_value = None
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
         
         session = mock_session
         session.get = AsyncMock(return_value=async_cm)
@@ -1170,10 +1195,10 @@ async def test_async_get_devices_data_json_from_xml_string_failure_specific(hass
         mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
         mock_response.text = AsyncMock(return_value="<xml><string>invalid json content</string></xml>")
         
-        # Create async context manager mock
+        # Create async context manager mock with proper awaitable methods
         async_cm = AsyncMock()
-        async_cm.__aenter__.return_value = mock_response
-        async_cm.__aexit__.return_value = None
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
         
         session = mock_session
         session.get = AsyncMock(return_value=async_cm)
@@ -1204,10 +1229,10 @@ async def test_async_get_devices_data_xml_without_string_node_specific(hass, moc
         mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
         mock_response.text = AsyncMock(return_value="<xml><other>data</other></xml>")
         
-        # Create async context manager mock
+        # Create async context manager mock with proper awaitable methods
         async_cm = AsyncMock()
-        async_cm.__aenter__.return_value = mock_response
-        async_cm.__aexit__.return_value = None
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
         
         session = mock_session
         session.get = AsyncMock(return_value=async_cm)
@@ -1238,10 +1263,10 @@ async def test_async_get_devices_data_xml_not_dict_specific(hass, mock_session):
         mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
         mock_response.text = AsyncMock(return_value="<xml>simple text</xml>")
         
-        # Create async context manager mock
+        # Create async context manager mock with proper awaitable methods
         async_cm = AsyncMock()
-        async_cm.__aenter__.return_value = mock_response
-        async_cm.__aexit__.return_value = None
+        async_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        async_cm.__aexit__ = AsyncMock(return_value=None)
         
         session = mock_session
         session.get = AsyncMock(return_value=async_cm)
