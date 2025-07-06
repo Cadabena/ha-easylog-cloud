@@ -13,6 +13,10 @@ on:
 env:
   DEFAULT_PYTHON: 3.9
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pre-commit:
     runs-on: "ubuntu-latest"
