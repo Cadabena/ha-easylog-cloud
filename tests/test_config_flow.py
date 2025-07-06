@@ -1,5 +1,5 @@
 """Test Home Assistant EasyLog Cloud config flow."""
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 
 import pytest
 from custom_components.ha_easylog_cloud.const import (
@@ -99,3 +99,153 @@ async def test_options_flow(hass):
     
     flow = EasylogCloudConfigFlow()
     assert flow is not None
+
+
+async def test_config_flow_show_form(hass):
+    """Test config flow form display."""
+    from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+    
+    # Create a config flow instance
+    flow = EasylogCloudConfigFlow()
+    flow.hass = hass
+    
+    # Test showing the form without user input
+    result = await flow.async_step_user(user_input=None)
+    
+    # Check that the form is shown
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"
+    assert "data_schema" in result
+    assert "errors" in result
+
+
+async def test_config_flow_show_form_with_errors(hass):
+    """Test config flow form display with errors."""
+    from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+    
+    # Create a config flow instance
+    flow = EasylogCloudConfigFlow()
+    flow.hass = hass
+    flow._errors = {"base": "auth"}
+    
+    # Test showing the form with errors
+    result = await flow.async_step_user(user_input=None)
+    
+    # Check that the form is shown with errors
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"
+    assert result["errors"] == {"base": "auth"}
+
+
+async def test_config_flow_show_form_with_user_input(hass):
+    """Test config flow form display with user input."""
+    from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+    
+    # Create a config flow instance
+    flow = EasylogCloudConfigFlow()
+    flow.hass = hass
+    
+    # Test showing the form with user input
+    result = await flow.async_step_user(user_input=MOCK_CONFIG)
+    
+    # Check that the form is shown (since we're not mocking _test_credentials)
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"
+
+
+async def test_test_credentials_success(hass):
+    """Test successful credential validation."""
+    from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+    
+    # Create a config flow instance
+    flow = EasylogCloudConfigFlow()
+    flow.hass = hass
+    
+    # Mock the API client
+    mock_api_client = type('MockApiClient', (), {
+        'authenticate': AsyncMock(),
+        'fetch_devices_page': AsyncMock(return_value="<html></html>"),
+        '_extract_devices_arr_from_html': lambda html: "test",
+        '_extract_device_list': lambda js, html: [{"id": 1, "name": "Test Device"}],
+        'account_name': "test_user"
+    })()
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        valid, name = await flow._test_credentials("test_user", "test_pass")
+        
+        assert valid is True
+        assert name == "test_user"
+
+
+async def test_test_credentials_success_no_account_name(hass):
+    """Test successful credential validation without account name."""
+    from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+    
+    # Create a config flow instance
+    flow = EasylogCloudConfigFlow()
+    flow.hass = hass
+    
+    # Mock the API client without account name
+    mock_api_client = type('MockApiClient', (), {
+        'authenticate': AsyncMock(),
+        'fetch_devices_page': AsyncMock(return_value="<html></html>"),
+        '_extract_devices_arr_from_html': lambda html: "test",
+        '_extract_device_list': lambda js, html: [{"id": 1, "name": "Test Device"}],
+        'account_name': None
+    })()
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        valid, name = await flow._test_credentials("test_user", "test_pass")
+        
+        assert valid is True
+        assert name is None
+
+
+async def test_test_credentials_failure(hass):
+    """Test failed credential validation."""
+    from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+    
+    # Create a config flow instance
+    flow = EasylogCloudConfigFlow()
+    flow.hass = hass
+    
+    # Mock the API client to raise exception
+    mock_api_client = type('MockApiClient', (), {
+        'authenticate': AsyncMock(side_effect=Exception("Auth failed"))
+    })()
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        valid, name = await flow._test_credentials("test_user", "test_pass")
+        
+        assert valid is False
+        assert name is None
+
+
+async def test_config_flow_initialization():
+    """Test config flow initialization."""
+    from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+    
+    # Test that the config flow can be instantiated
+    flow = EasylogCloudConfigFlow()
+    
+    assert flow.VERSION == 1
+    assert flow._errors == {}
+
+
+async def test_config_flow_error_clearing(hass):
+    """Test that errors are cleared on each step."""
+    from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+    
+    # Create a config flow instance
+    flow = EasylogCloudConfigFlow()
+    flow.hass = hass
+    flow._errors = {"base": "auth"}
+    
+    # Mock the credential test to return success
+    with patch.object(flow, '_test_credentials', return_value=(True, "test_username")):
+        # Test the user step
+        result = await flow.async_step_user(user_input=MOCK_CONFIG)
+        
+        # Check that errors are cleared
+        assert flow._errors == {}
+        assert result["type"] == "create_entry"
