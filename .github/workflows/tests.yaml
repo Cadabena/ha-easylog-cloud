@@ -26,6 +26,11 @@ jobs:
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libyaml-dev
+
       - name: Upgrade pip
         run: |
           pip install --constraint=.github/workflows/constraints.txt pip
@@ -71,6 +76,10 @@ jobs:
         uses: "actions/setup-python@v2.2.1"
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libyaml-dev
       - name: Install requirements
         run: |
           pip install --constraint=.github/workflows/constraints.txt pip
