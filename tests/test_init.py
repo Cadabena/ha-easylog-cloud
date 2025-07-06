@@ -35,7 +35,7 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     # Mock the integration loading
     with patch("homeassistant.loader.async_get_integration") as mock_get_integration:
         # Create a mock integration
-        async def mock_resolve_dependencies():
+        async def mock_resolve_dependencies(self):
             return True
         
         mock_integration = type('MockIntegration', (), {
