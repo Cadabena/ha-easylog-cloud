@@ -554,3 +554,42 @@ def test_sensor_device_info_fallback():
     assert device_info["name"] == "Device 1"
     assert device_info["manufacturer"] == "Lascar Electronics"
     assert "model" not in device_info  # No model in fallback 
+
+
+def test_sensor_native_value_exception_in_value_access():
+    """Test native_value property with exception when accessing device value."""
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    
+    # Create a mock coordinator with data that will cause exception
+    mock_coordinator = type('MockCoordinator', (), {
+        'data': [{
+            "id": 1,
+            "name": "Test Device",
+            "model": "Test Model",
+            "Temperature": {"value": 25.5, "unit": "°C"}
+        }]
+    })()
+    
+    mock_device = {"id": 1, "name": "Test Device"}
+    
+    # Create sensor
+    temp_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Temperature", {"value": 25.5})
+    
+    # Create a device dict that raises exception when accessing nested data
+    class ExceptionDevice:
+        def __getitem__(self, key):
+            if key == "Temperature":
+                return ExceptionValue()
+            return {"value": 25.5}
+    
+    class ExceptionValue:
+        def __getitem__(self, key):
+            if key == "value":
+                raise Exception("Test exception")
+            return "°C"
+    
+    # Replace the device in coordinator data
+    mock_coordinator.data[0] = ExceptionDevice()
+    
+    result = temp_sensor.native_value
+    assert result is None 

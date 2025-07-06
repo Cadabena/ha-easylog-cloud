@@ -644,3 +644,98 @@ async def test_async_get_devices_data_device_processing_continue(hass, mock_sess
     
     # Should return empty list when device processing fails completely
     assert result == []
+
+
+async def test_async_get_devices_data_channels_dict_single_detail(hass, mock_session):
+    """Test async_get_devices_data with channels as dict containing single channelDetails."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
+    
+    # Mock the authentication and device fetching
+    api.authenticate = AsyncMock()
+    api.fetch_devices_page = AsyncMock(return_value="<html><body>Devices page</body></html>")
+    api._extract_devices_arr_from_html = MagicMock(return_value="new Device(12, 'test', 'EL-USB-TC', 'Single Channel Dev')")
+    api._extract_device_list = MagicMock(return_value=[{"id": 12, "name": "Single Channel Dev", "model": "EL-USB-TC"}])
+    
+    # Mock response with channels as dict containing single channelDetails (not list)
+    live_response = AsyncMock()
+    live_response.json = AsyncMock(return_value={
+        "d": {
+            "sensorName": "Single Channel Dev",
+            "channels": {
+                "channelDetails": {
+                    "channelLabel": "Temperature",
+                    "reading": "22.5",
+                    "unit": "°C"
+                }
+            }
+        }
+    })
+    live_response.text = AsyncMock(return_value="{}")
+    
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = live_response
+    api._session.get = MagicMock(return_value=async_cm)
+    
+    result = await api.async_get_devices_data()
+    
+    # Should return device with single channel wrapped in list
+    assert len(result) == 1
+    dev = result[0]
+    assert dev["Temperature"]["value"] == 22.5
+
+
+async def test_async_get_devices_data_last_updated_invalid_datetime(hass, mock_session):
+    """Test async_get_devices_data with invalid datetime that triggers the defensive check."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
+    
+    # Mock the authentication and device fetching
+    api.authenticate = AsyncMock()
+    api.fetch_devices_page = AsyncMock(return_value="<html><body>Devices page</body></html>")
+    api._extract_devices_arr_from_html = MagicMock(return_value="new Device(13, 'test', 'EL-USB-TC', 'Invalid DT Dev')")
+    api._extract_device_list = MagicMock(return_value=[{"id": 13, "name": "Invalid DT Dev", "model": "EL-USB-TC"}])
+    
+    # Mock response with invalid Last Updated value that will trigger defensive check
+    live_response = AsyncMock()
+    live_response.json = AsyncMock(return_value={
+        "d": {
+            "sensorName": "Invalid DT Dev",
+            "lastCommFormatted": "invalid date format"
+        }
+    })
+    live_response.text = AsyncMock(return_value="{}")
+    
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = live_response
+    api._session.get = MagicMock(return_value=async_cm)
+    
+    result = await api.async_get_devices_data()
+    
+    # Should return device with None for invalid Last Updated
+    assert len(result) == 1
+    dev = result[0]
+    assert dev["Last Updated"]["value"] is None
+
+
+async def test_async_get_devices_data_continue_statement(hass, mock_session):
+    """Test async_get_devices_data that triggers the continue statement after XML parsing failure."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
+    
+    # Mock the authentication and device fetching
+    api.authenticate = AsyncMock()
+    api.fetch_devices_page = AsyncMock(return_value="<html><body>Devices page</body></html>")
+    api._extract_devices_arr_from_html = MagicMock(return_value="new Device(14, 'test', 'EL-USB-TC', 'Continue Dev')")
+    api._extract_device_list = MagicMock(return_value=[{"id": 14, "name": "Continue Dev", "model": "EL-USB-TC"}])
+    
+    # Mock response that fails both JSON and XML parsing
+    live_response = AsyncMock()
+    live_response.json = AsyncMock(side_effect=Exception("JSON failed"))
+    live_response.text = AsyncMock(return_value="invalid xml that can't be parsed")
+    
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = live_response
+    api._session.get = MagicMock(return_value=async_cm)
+    
+    result = await api.async_get_devices_data()
+    
+    # Should return empty list when device processing fails completely
+    assert result == []

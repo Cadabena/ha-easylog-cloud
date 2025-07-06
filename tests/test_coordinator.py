@@ -250,4 +250,23 @@ def test_coordinator_proxy_extract_device_list(hass, mock_session):
 
     result = coordinator._extract_device_list(devices_js, html)
     assert len(result) == 1
-    assert coordinator.account_name == "proxy_user" 
+    assert coordinator.account_name == "proxy_user"
+
+
+def test_coordinator_extract_device_list_method(hass, mock_session):
+    """Test coordinator's _extract_device_list method directly."""
+    coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
+    
+    # Mock the API client's _extract_device_list method
+    coordinator.api_client._extract_device_list = MagicMock(return_value=[
+        {"id": 1, "name": "Test Device", "model": "Test Model"}
+    ])
+    coordinator.api_client.account_name = "test_user"
+    
+    # Call the coordinator's method directly
+    result = coordinator._extract_device_list("test_js", "test_html")
+    
+    # Should return the device list and set account_name
+    assert len(result) == 1
+    assert result[0]["id"] == 1
+    assert coordinator.account_name == "test_user" 
