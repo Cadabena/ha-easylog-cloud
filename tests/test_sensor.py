@@ -595,10 +595,11 @@ def test_sensor_native_value_exception_in_value_access():
     assert result is None 
 
 
-async def test_sensor_native_value_timestamp_string_parsing_failure(hass, mock_coordinator):
+async def test_sensor_native_value_timestamp_string_parsing_failure(hass):
     """Test sensor native_value with timestamp string parsing failure (line 104)."""
     # Create coordinator with device data
-    coordinator = mock_coordinator
+    from .coordinator import EasylogCloudCoordinator
+    coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     coordinator.data = [
         {
             "id": 1,
@@ -619,10 +620,11 @@ async def test_sensor_native_value_timestamp_string_parsing_failure(hass, mock_c
     assert value is None
 
 
-async def test_sensor_native_value_numeric_sensor_float_conversion(hass, mock_coordinator):
+async def test_sensor_native_value_numeric_sensor_float_conversion(hass):
     """Test sensor native_value with numeric sensor float conversion (lines 115-116)."""
     # Create coordinator with device data
-    coordinator = mock_coordinator
+    from .coordinator import EasylogCloudCoordinator
+    coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     coordinator.data = [
         {
             "id": 1,
@@ -642,10 +644,11 @@ async def test_sensor_native_value_numeric_sensor_float_conversion(hass, mock_co
     assert value == 25.5
 
 
-async def test_sensor_native_value_numeric_sensor_conversion_failure(hass, mock_coordinator):
+async def test_sensor_native_value_numeric_sensor_conversion_failure(hass):
     """Test sensor native_value with numeric sensor conversion failure (lines 115-116)."""
     # Create coordinator with device data
-    coordinator = mock_coordinator
+    from .coordinator import EasylogCloudCoordinator
+    coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     coordinator.data = [
         {
             "id": 1,
