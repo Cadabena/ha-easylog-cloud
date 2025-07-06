@@ -324,4 +324,16 @@ async def test_async_update_data_exception_handling_specific(hass, mock_session)
     
     # The exception should be caught and re-raised by the coordinator
     with pytest.raises(ValueError, match="Specific API error"):
+        await coordinator._async_update_data()
+
+
+async def test_async_update_data_exception_handling_line_46(hass, mock_session):
+    """Test _async_update_data exception handling specifically for line 46."""
+    coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
+    
+    # Mock the API client to raise an exception during data fetching
+    coordinator.api_client.async_get_devices_data = AsyncMock(side_effect=Exception("API error for line 46"))
+    
+    # The exception should be caught and re-raised by the coordinator
+    with pytest.raises(Exception, match="API error for line 46"):
         await coordinator._async_update_data() 
