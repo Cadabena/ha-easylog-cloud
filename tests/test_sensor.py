@@ -598,7 +598,10 @@ def test_sensor_native_value_exception_in_value_access():
 async def test_sensor_native_value_timestamp_string_parsing_failure(hass):
     """Test sensor native_value with timestamp string parsing failure (line 104)."""
     # Create coordinator with device data
-    from .coordinator import EasylogCloudCoordinator
+    from custom_components.ha_easylog_cloud.coordinator import EasylogCloudCoordinator
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    from homeassistant.components.sensor import SensorDeviceClass
+    
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     coordinator.data = [
         {
@@ -623,7 +626,9 @@ async def test_sensor_native_value_timestamp_string_parsing_failure(hass):
 async def test_sensor_native_value_numeric_sensor_float_conversion(hass):
     """Test sensor native_value with numeric sensor float conversion (lines 115-116)."""
     # Create coordinator with device data
-    from .coordinator import EasylogCloudCoordinator
+    from custom_components.ha_easylog_cloud.coordinator import EasylogCloudCoordinator
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     coordinator.data = [
         {
@@ -647,7 +652,9 @@ async def test_sensor_native_value_numeric_sensor_float_conversion(hass):
 async def test_sensor_native_value_numeric_sensor_conversion_failure(hass):
     """Test sensor native_value with numeric sensor conversion failure (lines 115-116)."""
     # Create coordinator with device data
-    from .coordinator import EasylogCloudCoordinator
+    from custom_components.ha_easylog_cloud.coordinator import EasylogCloudCoordinator
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     coordinator.data = [
         {
