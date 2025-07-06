@@ -1,9 +1,13 @@
 name: Draft a release note
 on:
   push:
-    branches:
-      - main
-      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
 jobs:
   draft_release:
     name: Release Drafter
@@ -12,4 +16,4 @@ jobs:
       - name: Run release-drafter
         uses: release-drafter/release-drafter@v5.13.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
