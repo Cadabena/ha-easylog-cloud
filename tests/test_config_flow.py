@@ -1,5 +1,5 @@
 """Test Home Assistant EasyLog Cloud config flow."""
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 
 import pytest
 from custom_components.ha_easylog_cloud.const import (
@@ -20,6 +20,8 @@ from custom_components.ha_easylog_cloud.const import (
 from homeassistant import config_entries
 from homeassistant import data_entry_flow
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 
 from .const import MOCK_CONFIG
 
@@ -250,3 +252,168 @@ async def test_config_flow_error_clearing(hass):
         # Check that errors are cleared
         assert flow._errors == {}
         assert result["type"] == "create_entry"
+
+
+async def test_show_form(hass: HomeAssistant) -> None:
+    """Test that the form is served with no input."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+
+
+async def test_flow_with_valid_credentials(hass: HomeAssistant) -> None:
+    """Test successful config flow with valid credentials."""
+    # Mock the API client and its methods
+    mock_api_client = AsyncMock()
+    mock_api_client.authenticate = AsyncMock()
+    mock_api_client.fetch_devices_page = AsyncMock(return_value="<html></html>")
+    mock_api_client._extract_devices_arr_from_html = MagicMock(return_value="test")
+    mock_api_client._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+    mock_api_client.account_name = "test_user"
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}, data=MOCK_CONFIG
+        )
+
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert result["title"] == "test_user"
+        assert result["data"] == MOCK_CONFIG
+
+
+async def test_flow_with_invalid_credentials(hass: HomeAssistant) -> None:
+    """Test config flow with invalid credentials."""
+    # Mock the API client to raise exception
+    mock_api_client = AsyncMock()
+    mock_api_client.authenticate = AsyncMock(side_effect=Exception("Auth failed"))
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}, data=MOCK_CONFIG
+        )
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {"base": "auth"}
+
+
+async def test_flow_with_no_account_name(hass: HomeAssistant) -> None:
+    """Test config flow with no account name returned."""
+    # Mock the API client without account name
+    mock_api_client = AsyncMock()
+    mock_api_client.authenticate = AsyncMock()
+    mock_api_client.fetch_devices_page = AsyncMock(return_value="<html></html>")
+    mock_api_client._extract_devices_arr_from_html = MagicMock(return_value="test")
+    mock_api_client._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+    mock_api_client.account_name = None
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}, data=MOCK_CONFIG
+        )
+
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert result["title"] == "test_user"  # Should fallback to username
+        assert result["data"] == MOCK_CONFIG
+
+
+async def test_flow_with_no_devices(hass: HomeAssistant) -> None:
+    """Test config flow with no devices found."""
+    # Mock the API client with no devices
+    mock_api_client = AsyncMock()
+    mock_api_client.authenticate = AsyncMock()
+    mock_api_client.fetch_devices_page = AsyncMock(return_value="<html></html>")
+    mock_api_client._extract_devices_arr_from_html = MagicMock(return_value="")
+    mock_api_client._extract_device_list = MagicMock(return_value=[])
+    mock_api_client.account_name = "test_user"
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}, data=MOCK_CONFIG
+        )
+
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert result["title"] == "test_user"
+        assert result["data"] == MOCK_CONFIG
+
+
+async def test_flow_with_fetch_devices_failure(hass: HomeAssistant) -> None:
+    """Test config flow with fetch_devices_page failure."""
+    # Mock the API client with fetch_devices_page failure
+    mock_api_client = AsyncMock()
+    mock_api_client.authenticate = AsyncMock()
+    mock_api_client.fetch_devices_page = AsyncMock(side_effect=Exception("Fetch failed"))
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}, data=MOCK_CONFIG
+        )
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {"base": "auth"}
+
+
+async def test_flow_with_extract_devices_failure(hass: HomeAssistant) -> None:
+    """Test config flow with extract_devices_arr_from_html failure."""
+    # Mock the API client with extract_devices_arr_from_html failure
+    mock_api_client = AsyncMock()
+    mock_api_client.authenticate = AsyncMock()
+    mock_api_client.fetch_devices_page = AsyncMock(return_value="<html></html>")
+    mock_api_client._extract_devices_arr_from_html = MagicMock(side_effect=Exception("Extract failed"))
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}, data=MOCK_CONFIG
+        )
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {"base": "auth"}
+
+
+async def test_flow_with_extract_device_list_failure(hass: HomeAssistant) -> None:
+    """Test config flow with extract_device_list failure."""
+    # Mock the API client with extract_device_list failure
+    mock_api_client = AsyncMock()
+    mock_api_client.authenticate = AsyncMock()
+    mock_api_client.fetch_devices_page = AsyncMock(return_value="<html></html>")
+    mock_api_client._extract_devices_arr_from_html = MagicMock(return_value="test")
+    mock_api_client._extract_device_list = MagicMock(side_effect=Exception("Extract list failed"))
+    
+    with patch('custom_components.ha_easylog_cloud.config_flow.HAEasylogCloudApiClient', return_value=mock_api_client):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}, data=MOCK_CONFIG
+        )
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {"base": "auth"}
+
+
+async def test_show_config_form(hass: HomeAssistant) -> None:
+    """Test showing the config form."""
+    flow = EasylogCloudConfigFlow()
+    flow.hass = hass
+    
+    result = await flow._show_config_form(MOCK_CONFIG)
+    
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"
+    assert "data_schema" in result
+    assert "errors" in result
+
+
+async def test_show_config_form_with_errors(hass: HomeAssistant) -> None:
+    """Test showing the config form with errors."""
+    flow = EasylogCloudConfigFlow()
+    flow.hass = hass
+    flow._errors = {"base": "auth"}
+    
+    result = await flow._show_config_form(MOCK_CONFIG)
+    
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"
+    assert result["errors"] == {"base": "auth"}
+
+
+
