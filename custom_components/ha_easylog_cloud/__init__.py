@@ -41,3 +41,8 @@ async def async_reload_entry(hass, entry):
 
 # Alias for test compatibility
 HAEasylogCloudDataUpdateCoordinator = EasylogCloudCoordinator
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up the EasyLog Cloud component."""
+    hass.data.setdefault(DOMAIN, {})
+    return True
