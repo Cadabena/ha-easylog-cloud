@@ -593,3 +593,73 @@ def test_sensor_native_value_exception_in_value_access():
     
     result = temp_sensor.native_value
     assert result is None 
+
+
+async def test_sensor_native_value_timestamp_string_parsing_failure(hass, mock_coordinator):
+    """Test sensor native_value with timestamp string parsing failure (line 104)."""
+    # Create coordinator with device data
+    coordinator = mock_coordinator
+    coordinator.data = [
+        {
+            "id": 1,
+            "name": "Test Device",
+            "model": "EL-USB-TC",
+            "Last Updated": {"value": "invalid timestamp string", "unit": ""}
+        }
+    ]
+    
+    # Create sensor for Last Updated
+    sensor = EasylogCloudSensor(coordinator, coordinator.data[0], "Last Updated", {"value": "invalid timestamp string", "unit": ""})
+    sensor._attr_device_class = SensorDeviceClass.TIMESTAMP
+    
+    # Get native value - should return None due to parsing failure
+    value = sensor.native_value
+    
+    # Should return None when timestamp parsing fails
+    assert value is None
+
+
+async def test_sensor_native_value_numeric_sensor_float_conversion(hass, mock_coordinator):
+    """Test sensor native_value with numeric sensor float conversion (lines 115-116)."""
+    # Create coordinator with device data
+    coordinator = mock_coordinator
+    coordinator.data = [
+        {
+            "id": 1,
+            "name": "Test Device",
+            "model": "EL-USB-TC",
+            "VOC": {"value": "25.5", "unit": "ppm"}
+        }
+    ]
+    
+    # Create sensor for VOC (numeric sensor)
+    sensor = EasylogCloudSensor(coordinator, coordinator.data[0], "VOC", {"value": "25.5", "unit": "ppm"})
+    
+    # Get native value - should convert to float
+    value = sensor.native_value
+    
+    # Should return float value for numeric sensor
+    assert value == 25.5
+
+
+async def test_sensor_native_value_numeric_sensor_conversion_failure(hass, mock_coordinator):
+    """Test sensor native_value with numeric sensor conversion failure (lines 115-116)."""
+    # Create coordinator with device data
+    coordinator = mock_coordinator
+    coordinator.data = [
+        {
+            "id": 1,
+            "name": "Test Device",
+            "model": "EL-USB-TC",
+            "PM2.5": {"value": "invalid number", "unit": "µg/m³"}
+        }
+    ]
+    
+    # Create sensor for PM2.5 (numeric sensor)
+    sensor = EasylogCloudSensor(coordinator, coordinator.data[0], "PM2.5", {"value": "invalid number", "unit": "µg/m³"})
+    
+    # Get native value - should return None due to conversion failure
+    value = sensor.native_value
+    
+    # Should return None when numeric conversion fails
+    assert value is None 
