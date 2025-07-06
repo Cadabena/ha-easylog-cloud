@@ -68,3 +68,21 @@ async def test_switch_turn_on_off(hass):
     # Turn off again
     await sw.async_turn_off()
     assert sw.is_on is False
+
+
+def test_switch_device_info():
+    """Test switch device_info property."""
+    from custom_components.ha_easylog_cloud.switch import EasylogCloudSwitch
+    
+    # Create a mock coordinator
+    mock_coordinator = type("MockCoordinator", (), {})()
+    device = {"id": 42, "name": "Test Switch Device", "model": "Switch Model", "Test Switch": {"value": "off"}}
+    
+    sw = EasylogCloudSwitch(mock_coordinator, device, "Test Switch", device["Test Switch"])
+    
+    device_info = sw.device_info
+    
+    assert device_info["identifiers"] == {(DOMAIN, 42)}
+    assert device_info["name"] == "Test Switch Device"
+    assert device_info["manufacturer"] == "Lascar Electronics"
+    assert device_info["model"] == "Switch Model"

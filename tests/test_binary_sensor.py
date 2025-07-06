@@ -110,6 +110,19 @@ def test_is_binary_function():
     assert _is_binary({"value": "FALSE"}) is True  # Case insensitive
 
 
+def test_is_binary_exception_handling():
+    """Test _is_binary function with exception handling."""
+    from custom_components.ha_easylog_cloud.binary_sensor import _is_binary
+    
+    # Test with data that causes exception when accessing .get()
+    class MockData:
+        def get(self, key):
+            raise Exception("Test exception")
+    
+    # Should return False when exception occurs
+    assert _is_binary(MockData()) is False
+
+
 def test_device_class_guessing():
     """Test device class guessing logic."""
     from custom_components.ha_easylog_cloud.binary_sensor import EasylogCloudBinarySensor

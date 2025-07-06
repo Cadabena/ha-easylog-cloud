@@ -380,4 +380,173 @@ async def test_sensor_with_coordinator_updates(hass):
     mock_data[0]["Temperature"]["value"] = 30.0
     
     # Test updated state
-    assert sensor.native_value == 30.0 
+    assert sensor.native_value == 30.0
+
+
+def test_sensor_native_value_timestamp_parsing():
+    """Test native_value property with timestamp parsing."""
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    
+    # Create a mock coordinator with timestamp data
+    mock_coordinator = type('MockCoordinator', (), {
+        'data': [{
+            "id": 1,
+            "name": "Test Device",
+            "model": "Test Model",
+            "Last Updated": {"value": "2024-01-01T12:00:00", "unit": ""}
+        }]
+    })()
+    
+    mock_device = {"id": 1, "name": "Test Device"}
+    
+    # Test timestamp parsing with ISO format
+    timestamp_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Last Updated", {"value": "2024-01-01T12:00:00"})
+    result = timestamp_sensor.native_value
+    assert isinstance(result, datetime)
+    
+    # Test timestamp parsing with naive datetime (should add UTC)
+    timestamp_sensor2 = EasylogCloudSensor(mock_coordinator, mock_device, "Last Updated", {"value": "2024-01-01T12:00:00"})
+    # Update coordinator data to have naive datetime
+    mock_coordinator.data[0]["Last Updated"]["value"] = "2024-01-01T12:00:00"
+    result2 = timestamp_sensor2.native_value
+    assert isinstance(result2, datetime)
+    assert result2.tzinfo is not None  # Should have timezone info added
+    
+    # Test timestamp parsing with invalid format
+    mock_coordinator.data[0]["Last Updated"]["value"] = "invalid date"
+    result3 = timestamp_sensor2.native_value
+    assert result3 is None
+    
+    # Test timestamp parsing with non-string value
+    mock_coordinator.data[0]["Last Updated"]["value"] = 12345
+    result4 = timestamp_sensor2.native_value
+    assert result4 is None
+
+
+def test_sensor_native_value_numeric_sensor():
+    """Test native_value property with numeric sensor conversion."""
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    
+    # Create a mock coordinator with VOC data
+    mock_coordinator = type('MockCoordinator', (), {
+        'data': [{
+            "id": 1,
+            "name": "Test Device",
+            "model": "Test Model",
+            "VOC": {"value": "150.5", "unit": "ppb"}
+        }]
+    })()
+    
+    mock_device = {"id": 1, "name": "Test Device"}
+    
+    # Test numeric sensor with valid float value
+    voc_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "VOC", {"value": "150.5"})
+    result = voc_sensor.native_value
+    assert result == 150.5
+    
+    # Test numeric sensor with invalid value
+    mock_coordinator.data[0]["VOC"]["value"] = "not a number"
+    result2 = voc_sensor.native_value
+    assert result2 is None
+
+
+def test_sensor_native_value_exception_handling():
+    """Test native_value property with exception handling."""
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    
+    # Create a mock coordinator that raises exception
+    mock_coordinator = type('MockCoordinator', (), {
+        'data': [{
+            "id": 1,
+            "name": "Test Device",
+            "model": "Test Model",
+            "Temperature": {"value": 25.5, "unit": "°C"}
+        }]
+    })()
+    
+    mock_device = {"id": 1, "name": "Test Device"}
+    
+    # Create sensor with data that will cause exception when accessed
+    temp_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Temperature", {"value": 25.5})
+    
+    # Mock the device lookup to raise an exception
+    def mock_next_with_exception(*args, **kwargs):
+        raise Exception("Test exception")
+    
+    # Patch the next function to raise exception
+    with patch('builtins.next', side_effect=mock_next_with_exception):
+        result = temp_sensor.native_value
+        assert result is None
+
+
+def test_sensor_native_value_device_not_found():
+    """Test native_value property when device is not found in coordinator data."""
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    
+    # Create a mock coordinator with different device ID
+    mock_coordinator = type('MockCoordinator', (), {
+        'data': [{
+            "id": 999,  # Different ID
+            "name": "Other Device",
+            "model": "Other Model",
+            "Temperature": {"value": 25.5, "unit": "°C"}
+        }]
+    })()
+    
+    mock_device = {"id": 1, "name": "Test Device"}
+    
+    # Create sensor for device that doesn't exist in coordinator data
+    temp_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Temperature", {"value": 25.5})
+    
+    result = temp_sensor.native_value
+    assert result is None
+
+
+def test_sensor_native_value_label_not_found():
+    """Test native_value property when label is not found in device data."""
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    
+    # Create a mock coordinator with device but missing the specific label
+    mock_coordinator = type('MockCoordinator', (), {
+        'data': [{
+            "id": 1,
+            "name": "Test Device",
+            "model": "Test Model",
+            "Humidity": {"value": 60, "unit": "%"}  # Different label
+        }]
+    })()
+    
+    mock_device = {"id": 1, "name": "Test Device"}
+    
+    # Create sensor for label that doesn't exist in device data
+    temp_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Temperature", {"value": 25.5})
+    
+    result = temp_sensor.native_value
+    assert result is None
+
+
+def test_sensor_device_info_fallback():
+    """Test device_info property when device is not found in coordinator data."""
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
+    
+    # Create a mock coordinator with different device ID
+    mock_coordinator = type('MockCoordinator', (), {
+        'data': [{
+            "id": 999,  # Different ID
+            "name": "Other Device",
+            "model": "Other Model"
+        }]
+    })()
+    
+    mock_device = {"id": 1, "name": "Test Device"}
+    
+    # Create sensor for device that doesn't exist in coordinator data
+    temp_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Temperature", {"value": 25.5})
+    
+    device_info = temp_sensor.device_info
+    
+    # Should return fallback device info
+    assert device_info["identifiers"] == {(DOMAIN, 1)}
+    assert device_info["name"] == "Device 1"
+    assert device_info["manufacturer"] == "Lascar Electronics"
+    assert "model" not in device_info  # No model in fallback 

@@ -81,3 +81,14 @@ async def test_setup_entry_exception(hass, error_on_get_data):
     # an error.
     with pytest.raises(ConfigEntryNotReady):
         assert await async_setup_entry(hass, config_entry)
+
+
+async def test_async_setup(hass):
+    """Test async_setup function."""
+    from custom_components.ha_easylog_cloud import async_setup
+    
+    # Test that async_setup initializes the domain in hass.data
+    result = await async_setup(hass, {})
+    
+    assert result is True
+    assert DOMAIN in hass.data
