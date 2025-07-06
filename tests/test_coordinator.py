@@ -273,19 +273,43 @@ def test_coordinator_extract_device_list_method(hass, mock_session):
 
 
 async def test_extract_device_list_returns_devices(hass, mock_session):
-    """Test _extract_device_list returns devices and sets account_name (line 46)."""
+    """Test that _extract_device_list returns devices and sets account_name."""
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     
-    # Mock the API client's _extract_device_list method
-    mock_devices = [
-        {"id": 1, "name": "Test Device", "model": "EL-USB-TC"}
-    ]
-    coordinator.api_client._extract_device_list = MagicMock(return_value=mock_devices)
-    coordinator.api_client.account_name = "test_account"
+    # Mock devices JS with proper device data
+    devices_js = """
+    new Device(1, 'test', 'EL-USB-TC', 'Test Device', 'AA:BB:CC:DD:EE:FF',
+               'test_location', 'test_group', 'test_notes', 'test_alerts',
+               'test_settings', 'test_calibration', 'test_maintenance',
+               'test_history', 'test_reports', 'test_export', 'test_import',
+               '1.2.3', 'MyWiFi', 'test_ip', 'test_port', 'test_protocol',
+               'test_encryption', 'test_authentication', 'test_authorization',
+               'test_permissions', 'test_roles', 'test_users', 'test_groups',
+               '-50', 'test_ssid', 'test_bssid', 'test_channel', 'test_frequency',
+               'test_bandwidth', 'test_security', 'test_password', 'test_psk',
+               '01/01/2024 12:00:00', [new Channel('Temperature', '25.5', '°C'), new Channel('Humidity', '60', '%')])
+    """
     
-    # Call the method
-    result = coordinator._extract_device_list("devices_js", "html")
+    html = """
+    <html>
+        <span id="username">test_user</span>
+    </html>
+    """
     
-    # Should return devices and set account_name
-    assert result == mock_devices
-    assert coordinator.account_name == "test_account" 
+    result = coordinator._extract_device_list(devices_js, html)
+    
+    assert len(result) == 1
+    assert result[0]["id"] == 1
+    assert coordinator.account_name == "test_user"
+
+
+async def test_async_update_data_exception_handling(hass, mock_session):
+    """Test _async_update_data exception handling (line 46)."""
+    coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
+    
+    # Mock the API client to raise an exception during data fetching
+    coordinator.api_client.async_get_devices_data = AsyncMock(side_effect=Exception("API error"))
+    
+    # The exception should be caught and re-raised by the coordinator
+    with pytest.raises(Exception, match="API error"):
+        await coordinator._async_update_data() 

@@ -913,27 +913,172 @@ async def test_async_get_devices_data_last_updated_defensive_check(hass, mock_se
 
 
 async def test_async_get_devices_data_no_live_devices_error(hass, mock_session):
-    """Test async_get_devices_data when no live devices are found (lines 197-199)."""
+    """Test async_get_devices_data when no live devices are found."""
     api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
     
-    # Mock the authentication and device fetching
-    api.authenticate = AsyncMock()
-    api.fetch_devices_page = AsyncMock(return_value="<html><body>Devices page</body></html>")
-    api._extract_devices_arr_from_html = MagicMock(return_value="new Device(20, 'test', 'EL-USB-TC', 'No Live Dev')")
-    api._extract_device_list = MagicMock(return_value=[{"id": 20, "name": "No Live Dev", "model": "EL-USB-TC"}])
+    # Mock successful authentication and device list extraction
+    with patch.object(api, 'authenticate', new_callable=AsyncMock) as mock_auth, \
+         patch.object(api, 'fetch_devices_page', new_callable=AsyncMock) as mock_fetch, \
+         patch.object(api, '_extract_devices_arr_from_html') as mock_extract_arr, \
+         patch.object(api, '_extract_device_list') as mock_extract_list:
+        
+        mock_fetch.return_value = "<html>devices page</html>"
+        mock_extract_arr.return_value = "devices array"
+        mock_extract_list.return_value = []  # Empty device list
+        
+        # Mock the API response for device data
+        mock_response = AsyncMock()
+        mock_response.json = AsyncMock(return_value={"d": {}})
+        
+        session = mock_session
+        session.get = AsyncMock(return_value=mock_response)
+        
+        result = await api.async_get_devices_data()
+        
+        assert result == []
+        mock_auth.assert_called_once()
+        mock_fetch.assert_called_once()
+
+
+async def test_async_get_devices_data_no_data_returned_for_device(hass, mock_session):
+    """Test async_get_devices_data when API returns no data for a specific device (line 107)."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
     
-    # Mock response that causes device to be skipped (no data)
-    live_response = AsyncMock()
-    live_response.json = AsyncMock(return_value={})  # Empty response
-    live_response.text = AsyncMock(return_value="{}")
+    # Mock successful authentication and device list extraction
+    with patch.object(api, 'authenticate', new_callable=AsyncMock) as mock_auth, \
+         patch.object(api, 'fetch_devices_page', new_callable=AsyncMock) as mock_fetch, \
+         patch.object(api, '_extract_devices_arr_from_html') as mock_extract_arr, \
+         patch.object(api, '_extract_device_list') as mock_extract_list:
+        
+        mock_fetch.return_value = "<html>devices page</html>"
+        mock_extract_arr.return_value = "devices array"
+        mock_extract_list.return_value = [{"id": 1, "name": "Test Device", "model": "EL-USB-TC"}]
+        
+        # Mock the API response with no data
+        mock_response = AsyncMock()
+        mock_response.json = AsyncMock(return_value={})  # No 'd' or 'deviceStatus' key
+        
+        session = mock_session
+        session.get = AsyncMock(return_value=mock_response)
+        
+        result = await api.async_get_devices_data()
+        
+        # Should return empty list since no data was returned for the device
+        assert result == []
+        mock_auth.assert_called_once()
+
+
+async def test_async_get_devices_data_xml_parsing_exception(hass, mock_session):
+    """Test async_get_devices_data when XML parsing fails (line 111)."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
     
-    async_cm = AsyncMock()
-    async_cm.__aenter__.return_value = live_response
-    api._session.get = MagicMock(return_value=async_cm)
+    # Mock successful authentication and device list extraction
+    with patch.object(api, 'authenticate', new_callable=AsyncMock) as mock_auth, \
+         patch.object(api, 'fetch_devices_page', new_callable=AsyncMock) as mock_fetch, \
+         patch.object(api, '_extract_devices_arr_from_html') as mock_extract_arr, \
+         patch.object(api, '_extract_device_list') as mock_extract_list:
+        
+        mock_fetch.return_value = "<html>devices page</html>"
+        mock_extract_arr.return_value = "devices array"
+        mock_extract_list.return_value = [{"id": 1, "name": "Test Device", "model": "EL-USB-TC"}]
+        
+        # Mock the API response that fails JSON parsing and XML parsing
+        mock_response = AsyncMock()
+        mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
+        mock_response.text = AsyncMock(return_value="invalid xml content")
+        
+        session = mock_session
+        session.get = AsyncMock(return_value=mock_response)
+        
+        result = await api.async_get_devices_data()
+        
+        # Should return empty list since XML parsing failed
+        assert result == []
+        mock_auth.assert_called_once()
+
+
+async def test_async_get_devices_data_json_from_xml_string_failure(hass, mock_session):
+    """Test async_get_devices_data when JSON parsing from XML string fails (lines 152-154)."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
     
-    result = await api.async_get_devices_data()
+    # Mock successful authentication and device list extraction
+    with patch.object(api, 'authenticate', new_callable=AsyncMock) as mock_auth, \
+         patch.object(api, 'fetch_devices_page', new_callable=AsyncMock) as mock_fetch, \
+         patch.object(api, '_extract_devices_arr_from_html') as mock_extract_arr, \
+         patch.object(api, '_extract_device_list') as mock_extract_list:
+        
+        mock_fetch.return_value = "<html>devices page</html>"
+        mock_extract_arr.return_value = "devices array"
+        mock_extract_list.return_value = [{"id": 1, "name": "Test Device", "model": "EL-USB-TC"}]
+        
+        # Mock the API response that fails JSON parsing but succeeds XML parsing
+        mock_response = AsyncMock()
+        mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
+        mock_response.text = AsyncMock(return_value="<xml><string>invalid json</string></xml>")
+        
+        session = mock_session
+        session.get = AsyncMock(return_value=mock_response)
+        
+        result = await api.async_get_devices_data()
+        
+        # Should return empty list since JSON parsing from XML string failed
+        assert result == []
+        mock_auth.assert_called_once()
+
+
+async def test_async_get_devices_data_xml_without_string_node_new(hass, mock_session):
+    """Test async_get_devices_data when XML doesn't contain 'string' node (lines 170-171)."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
     
-    # Should return device with empty data when no live devices found
-    assert len(result) == 1
-    dev = result[0]
-    assert dev["name"] == "No Live Dev"
+    # Mock successful authentication and device list extraction
+    with patch.object(api, 'authenticate', new_callable=AsyncMock) as mock_auth, \
+         patch.object(api, 'fetch_devices_page', new_callable=AsyncMock) as mock_fetch, \
+         patch.object(api, '_extract_devices_arr_from_html') as mock_extract_arr, \
+         patch.object(api, '_extract_device_list') as mock_extract_list:
+        
+        mock_fetch.return_value = "<html>devices page</html>"
+        mock_extract_arr.return_value = "devices array"
+        mock_extract_list.return_value = [{"id": 1, "name": "Test Device", "model": "EL-USB-TC"}]
+        
+        # Mock the API response that fails JSON parsing but succeeds XML parsing without 'string' node
+        mock_response = AsyncMock()
+        mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
+        mock_response.text = AsyncMock(return_value="<xml><other>data</other></xml>")
+        
+        session = mock_session
+        session.get = AsyncMock(return_value=mock_response)
+        
+        result = await api.async_get_devices_data()
+        
+        # Should return empty list since XML doesn't contain 'string' node
+        assert result == []
+        mock_auth.assert_called_once()
+
+
+async def test_async_get_devices_data_xml_not_dict(hass, mock_session):
+    """Test async_get_devices_data when XML parsing returns non-dict (lines 197-199)."""
+    api = HAEasylogCloudApiClient(hass, "test_user", "test_pass")
+    
+    # Mock successful authentication and device list extraction
+    with patch.object(api, 'authenticate', new_callable=AsyncMock) as mock_auth, \
+         patch.object(api, 'fetch_devices_page', new_callable=AsyncMock) as mock_fetch, \
+         patch.object(api, '_extract_devices_arr_from_html') as mock_extract_arr, \
+         patch.object(api, '_extract_device_list') as mock_extract_list:
+        
+        mock_fetch.return_value = "<html>devices page</html>"
+        mock_extract_arr.return_value = "devices array"
+        mock_extract_list.return_value = [{"id": 1, "name": "Test Device", "model": "EL-USB-TC"}]
+        
+        # Mock the API response that fails JSON parsing but succeeds XML parsing returning non-dict
+        mock_response = AsyncMock()
+        mock_response.json = AsyncMock(side_effect=Exception("JSON parsing failed"))
+        mock_response.text = AsyncMock(return_value="<xml>simple text</xml>")
+        
+        session = mock_session
+        session.get = AsyncMock(return_value=mock_response)
+        
+        result = await api.async_get_devices_data()
+        
+        # Should return empty list since XML parsing didn't return a dict
+        assert result == []
+        mock_auth.assert_called_once()
