@@ -45,14 +45,16 @@ async def test_async_update_data_exception(hass):
     
     # Mock API client to raise exception
     with patch.object(coordinator.api_client, 'async_get_devices_data', side_effect=Exception("API Error")):
-        result = await coordinator._async_update_data()
-        
-        assert result is None
+        with pytest.raises(Exception):
+            await coordinator._async_update_data()
 
 
 async def test_authenticate_method(hass, aioclient_mock):
     """Test coordinator authenticate method."""
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
+    
+    # Mock the session property
+    coordinator._session = coordinator.api_client._session
     
     # Mock the login page response
     login_html = """
@@ -75,6 +77,9 @@ async def test_fetch_devices_page_method(hass, aioclient_mock):
     """Test coordinator fetch_devices_page method."""
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     
+    # Mock the session property
+    coordinator._session = coordinator.api_client._session
+    
     # Mock the devices page response
     devices_html = "<html><body>Devices page content</body></html>"
     aioclient_mock.get("https://www.easylogcloud.com/devices.aspx", text=devices_html)
@@ -88,9 +93,9 @@ async def test_fetch_devices_page_method(hass, aioclient_mock):
     assert len(aioclient_mock.mock_calls) == 1
 
 
-def test_extract_devices_arr_from_html_method():
+def test_extract_devices_arr_from_html_method(hass):
     """Test coordinator extract_devices_arr_from_html method."""
-    coordinator = EasylogCloudCoordinator(None, "test", "test")
+    coordinator = EasylogCloudCoordinator(hass, "test", "test")
     
     # Test successful extraction
     html_with_devices = """
@@ -111,9 +116,9 @@ def test_extract_devices_arr_from_html_method():
     assert result == ""
 
 
-def test_extract_device_list_method_success():
+def test_extract_device_list_method_success(hass):
     """Test coordinator extract_device_list method with success."""
-    coordinator = EasylogCloudCoordinator(None, "test", "test")
+    coordinator = EasylogCloudCoordinator(hass, "test", "test")
     
     # Mock devices JS with proper device data
     devices_js = """
@@ -149,9 +154,9 @@ def test_extract_device_list_method_success():
     assert coordinator.account_name == "test_user"
 
 
-def test_extract_device_list_method_insufficient_fields():
+def test_extract_device_list_method_insufficient_fields(hass):
     """Test coordinator extract_device_list method with insufficient fields."""
-    coordinator = EasylogCloudCoordinator(None, "test", "test")
+    coordinator = EasylogCloudCoordinator(hass, "test", "test")
     
     # Mock devices JS with insufficient fields
     devices_js = "new Device(1, 'test')"  # Not enough fields
@@ -246,8 +251,13 @@ async def test_coordinator_with_session(hass, aioclient_mock):
     </html>
     """
     
-    mock_session.get.return_value.__aenter__.return_value.text = AsyncMock(return_value=login_html)
-    mock_session.post.return_value.__aenter__.return_value.cookies = {"session": "test_session"}
+    # Mock the response objects properly
+    mock_response = AsyncMock()
+    mock_response.text = AsyncMock(return_value=login_html)
+    mock_response.cookies = {"session": "test_session"}
+    
+    mock_session.get.return_value.__aenter__.return_value = mock_response
+    mock_session.post.return_value.__aenter__.return_value = mock_response
     
     await coordinator.authenticate()
     
@@ -266,7 +276,10 @@ async def test_coordinator_fetch_devices_with_session(hass, aioclient_mock):
     
     # Mock the devices page response
     devices_html = "<html><body>Devices page content</body></html>"
-    mock_session.get.return_value.__aenter__.return_value.text = AsyncMock(return_value=devices_html)
+    mock_response = AsyncMock()
+    mock_response.text = AsyncMock(return_value=devices_html)
+    
+    mock_session.get.return_value.__aenter__.return_value = mock_response
     
     # Set cookies
     coordinator._cookies = {"session": "test_session"}

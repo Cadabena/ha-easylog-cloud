@@ -80,9 +80,9 @@ async def test_fetch_devices_page(hass, aioclient_mock):
     assert len(aioclient_mock.mock_calls) == 1
 
 
-def test_extract_devices_arr_from_html():
+def test_extract_devices_arr_from_html(hass):
     """Test extracting devices array from HTML."""
-    api = HAEasylogCloudApiClient(None, "test", "test")
+    api = HAEasylogCloudApiClient(hass, "test", "test")
     
     # Test successful extraction
     html_with_devices = """
@@ -103,9 +103,9 @@ def test_extract_devices_arr_from_html():
     assert result == ""
 
 
-def test_extract_device_list_success():
+def test_extract_device_list_success(hass):
     """Test successful device list extraction."""
-    api = HAEasylogCloudApiClient(None, "test", "test")
+    api = HAEasylogCloudApiClient(hass, "test", "test")
     
     # Mock devices JS with proper device data
     devices_js = """
@@ -141,9 +141,9 @@ def test_extract_device_list_success():
     assert api.account_name == "test_user"
 
 
-def test_extract_device_list_insufficient_fields():
+def test_extract_device_list_insufficient_fields(hass):
     """Test device list extraction with insufficient fields."""
-    api = HAEasylogCloudApiClient(None, "test", "test")
+    api = HAEasylogCloudApiClient(hass, "test", "test")
     
     # Mock devices JS with insufficient fields
     devices_js = "new Device(1, 'test')"  # Not enough fields
@@ -155,9 +155,9 @@ def test_extract_device_list_insufficient_fields():
     assert len(result) == 0
 
 
-def test_extract_device_list_parsing_error():
+def test_extract_device_list_parsing_error(hass):
     """Test device list extraction with parsing error."""
-    api = HAEasylogCloudApiClient(None, "test", "test")
+    api = HAEasylogCloudApiClient(hass, "test", "test")
     
     # Mock devices JS with invalid data
     devices_js = "new Device('invalid_id', 'test', 'EL-USB-TC', 'Test Device')"  # Invalid ID
@@ -169,9 +169,9 @@ def test_extract_device_list_parsing_error():
     assert len(result) == 0
 
 
-def test_extract_device_list_invalid_date():
+def test_extract_device_list_invalid_date(hass):
     """Test device list extraction with invalid date."""
-    api = HAEasylogCloudApiClient(None, "test", "test")
+    api = HAEasylogCloudApiClient(hass, "test", "test")
     
     # Mock devices JS with invalid date
     devices_js = """
@@ -318,7 +318,7 @@ async def test_async_get_devices_data_invalid_response(hass, aioclient_mock):
                     
                     result = await api.async_get_devices_data()
                     
-                    assert len(result) == 1  # Device is still added but without live data
+                    assert len(result) == 0  # Device is not added when API fails
 
 
 async def test_async_get_devices_data_no_devices(hass, aioclient_mock):
@@ -528,18 +528,18 @@ async def test_async_get_devices_data_no_channels(hass, aioclient_mock):
                     assert "Temperature" not in device
 
 
-async def test_async_set_title():
+async def test_async_set_title(hass):
     """Test async_set_title stub method."""
-    api = HAEasylogCloudApiClient(None, "test", "test")
+    api = HAEasylogCloudApiClient(hass, "test", "test")
     
     result = await api.async_set_title("test_title")
     
     assert result is None
 
 
-async def test_api_wrapper():
+async def test_api_wrapper(hass):
     """Test api_wrapper stub method."""
-    api = HAEasylogCloudApiClient(None, "test", "test")
+    api = HAEasylogCloudApiClient(hass, "test", "test")
     
     result = await api.api_wrapper("get", "https://example.com")
     

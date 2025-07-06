@@ -153,6 +153,8 @@ def test_binary_sensor_is_on_property():
     
     # Test string values
     sensor_true = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": "true"})
+    # Update the device data to include the test value
+    mock_device["Test"] = {"value": "true"}
     assert sensor_true.is_on is True
     
     sensor_on = EasylogCloudBinarySensor(mock_coordinator, mock_device, "Test", {"value": "on"})

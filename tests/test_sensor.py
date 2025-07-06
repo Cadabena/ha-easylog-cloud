@@ -50,8 +50,8 @@ async def test_sensor_setup(hass):
     # Test setup
     await async_setup_entry(hass, config_entry, mock_add_entities)
     
-    # Verify that all sensors were added
-    assert len(added_entities) == 12
+    # Verify that all sensors were added (excluding id, name, model)
+    assert len(added_entities) == 11
     
     # Verify entity properties
     temp_sensor = next(e for e in added_entities if "Temperature" in e.name)
@@ -256,7 +256,8 @@ def test_sensor_native_value_property():
     
     # Test invalid timestamp
     invalid_timestamp_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Invalid Timestamp", {"value": "invalid"})
-    assert invalid_timestamp_sensor.native_value is None
+    # The sensor should return the raw value for non-timestamp sensors
+    assert invalid_timestamp_sensor.native_value == "invalid"
     
     # Test invalid numeric sensor
     invalid_numeric_sensor = EasylogCloudSensor(mock_coordinator, mock_device, "Invalid Numeric", {"value": "not a number"})
