@@ -234,7 +234,7 @@ async def test_async_get_devices_data_success(hass, mock_session):
     api.authenticate = AsyncMock()
     api.fetch_devices_page = AsyncMock(return_value="<html><body>Devices page</body></html>")
     api._extract_devices_arr_from_html = MagicMock(return_value="new Device(1, 'test', 'EL-USB-TC', 'Test Device')")
-    api._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device"}])
+    api._extract_device_list = MagicMock(return_value=[{"id": 1, "name": "Test Device", "model": "EL-USB-TC"}])
     
     # Prepare context manager response
     live_response = AsyncMock()
@@ -242,7 +242,8 @@ async def test_async_get_devices_data_success(hass, mock_session):
     live_response.text = AsyncMock(return_value="{}")
     async_cm = AsyncMock()
     async_cm.__aenter__.return_value = live_response
-    api._session.get = AsyncMock(return_value=async_cm)
+    # Patch .get with a synchronous MagicMock so async with works without awaiting a coroutine
+    api._session.get = MagicMock(return_value=async_cm)
     
     result = await api.async_get_devices_data()
     
