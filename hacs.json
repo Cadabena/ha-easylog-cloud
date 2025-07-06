@@ -1,7 +1,8 @@
 {
-  "name": "EasyLog Cloud",
-  "render_readme": true,
+  "name": "Home Assistant EasyLog Cloud",
+  "hacs": true,
   "domains": ["binary_sensor", "sensor", "switch"],
   "iot_class": "cloud_polling",
-  "homeassistant": "2024.1.0"
+  "homeassistant": "2024.1.0",
+  "requirement": ">=1.6.0"
 }
