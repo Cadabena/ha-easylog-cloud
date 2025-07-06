@@ -162,16 +162,16 @@ async def test_test_credentials_success(hass):
     flow = EasylogCloudConfigFlow()
     flow.hass = hass
     
-            # Mock the API client
-        mock_api_client = type('MockApiClient', (), {
-            'authenticate': AsyncMock(),
-            'fetch_devices_page': AsyncMock(return_value="<html></html>"),
-            '_extract_devices_arr_from_html': lambda html: "test",
-            '_extract_device_list': lambda js, html: [{"id": 1, "name": "Test Device"}],
-            'account_name': "test_user"
-        })()
-        
-        with patch('custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient', return_value=mock_api_client):
+    # Mock the API client
+    mock_api_client = type('MockApiClient', (), {
+        'authenticate': AsyncMock(),
+        'fetch_devices_page': AsyncMock(return_value="<html></html>"),
+        '_extract_devices_arr_from_html': lambda html: "test",
+        '_extract_device_list': lambda js, html: [{"id": 1, "name": "Test Device"}],
+        'account_name': "test_user"
+    })()
+    
+    with patch('custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient', return_value=mock_api_client):
         valid, name = await flow._test_credentials("test_user", "test_pass")
         
         assert valid is True
@@ -186,16 +186,16 @@ async def test_test_credentials_success_no_account_name(hass):
     flow = EasylogCloudConfigFlow()
     flow.hass = hass
     
-            # Mock the API client without account name
-        mock_api_client = type('MockApiClient', (), {
-            'authenticate': AsyncMock(),
-            'fetch_devices_page': AsyncMock(return_value="<html></html>"),
-            '_extract_devices_arr_from_html': lambda html: "test",
-            '_extract_device_list': lambda js, html: [{"id": 1, "name": "Test Device"}],
-            'account_name': None
-        })()
-        
-        with patch('custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient', return_value=mock_api_client):
+    # Mock the API client without account name
+    mock_api_client = type('MockApiClient', (), {
+        'authenticate': AsyncMock(),
+        'fetch_devices_page': AsyncMock(return_value="<html></html>"),
+        '_extract_devices_arr_from_html': lambda html: "test",
+        '_extract_device_list': lambda js, html: [{"id": 1, "name": "Test Device"}],
+        'account_name': None
+    })()
+    
+    with patch('custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient', return_value=mock_api_client):
         valid, name = await flow._test_credentials("test_user", "test_pass")
         
         assert valid is True
@@ -210,12 +210,12 @@ async def test_test_credentials_failure(hass):
     flow = EasylogCloudConfigFlow()
     flow.hass = hass
     
-            # Mock the API client to raise exception
-        mock_api_client = type('MockApiClient', (), {
-            'authenticate': AsyncMock(side_effect=Exception("Auth failed"))
-        })()
-        
-        with patch('custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient', return_value=mock_api_client):
+    # Mock the API client to raise exception
+    mock_api_client = type('MockApiClient', (), {
+        'authenticate': AsyncMock(side_effect=Exception("Auth failed"))
+    })()
+    
+    with patch('custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient', return_value=mock_api_client):
         valid, name = await flow._test_credentials("test_user", "test_pass")
         
         assert valid is False
