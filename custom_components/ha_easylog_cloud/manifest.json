@@ -1,12 +1,12 @@
 {
   "domain": "ha_easylog_cloud",
   "name": "Home Assistant EasyLog Cloud",
-  "version": "0.9.0",
+  "codeowners": ["@Cadabena"],
+  "dependencies": [],
   "documentation": "https://github.com/Cadabena/ha-easylog-cloud",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Cadabena/ha-easylog-cloud/issues",
   "requirements": [],
-  "dependencies": [],
-  "codeowners": ["@Cadabena"],
-  "iot_class": "cloud_polling",
-  "integration_type": "hub"
+  "version": "0.9.0"
 }
