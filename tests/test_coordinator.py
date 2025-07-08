@@ -12,7 +12,7 @@ from custom_components.ha_easylog_cloud.coordinator import EasylogCloudCoordinat
 def mock_session():
     """Mock aiohttp session."""
     with patch(
-        "custom_components.ha_easylog_cloud.coordinator.async_get_clientsession"
+        "custom_components.ha_easylog_cloud.api.async_get_clientsession"
     ) as mock:
         session = AsyncMock()
         mock.return_value = session
