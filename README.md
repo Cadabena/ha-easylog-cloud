@@ -71,6 +71,6 @@ This project was generated using the [Home Assistant Custom Component Cookiecutt
 [hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
 [license-shield]: https://img.shields.io/github/license/Cadabena/ha-easylog-cloud.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/Cadabena/ha-easylog-cloud.svg?style=for-the-badge
-[releases]: https://gitlab.com/Cadabena/ha-easylog-cloud/releases
+[releases]: https://github.com/Cadabena/ha-easylog-cloud/releases
 
 **Topics:** home-assistant, easylog, iot, cloud, integration
