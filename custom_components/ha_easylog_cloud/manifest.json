@@ -3,9 +3,10 @@
   "name": "Home Assistant EasyLog Cloud",
   "version": "0.9.0",
   "documentation": "https://github.com/Cadabena/ha-easylog-cloud",
+  "issue_tracker": "https://github.com/Cadabena/ha-easylog-cloud/issues",
   "requirements": [],
   "dependencies": [],
   "codeowners": ["@Cadabena"],
   "iot_class": "cloud_polling",
-  "integration_type": "integration"
+  "integration_type": "hub"
 }
