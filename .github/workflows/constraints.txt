@@ -1,7 +1,7 @@
-pip==21.0
-pre-commit==2.9.3
-black==22.3.0
-flake8==3.8.4
-reorder-python-imports==2.3.6
-PyYAML==6.0.1
-click==8.0.4
+pip>=21.0
+pre-commit
+black>=24.0.0
+flake8>=7.0.0
+reorder-python-imports>=2.3.6
+PyYAML>=6.0,<7.0
+click>=8.1,<23.0
