@@ -1,12 +1,10 @@
 # Home Assistant EasyLog Cloud
 
 [![GitHub Release][releases-shield]][releases]
-[![GitHub Activity][commits-shield]][commits]
-[![License][license-shield]](LICENSE)
 [![hacs][hacsbadge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-A Home Assistant custom component for integrating EasyLog Cloud devices.
+An unofficial Home Assistant custom component for integrating EasyLog Cloud devices.
 
 Monitor indoor environmental conditions using [Lascar Electronics](https://lascarelectronics.com/) EL-MOTE and EL-WiFi [EasyLog Cloud](https://lascarelectronics.com/software/easylog-software/easylog-cloud/) devices, such as:
 
@@ -32,15 +30,17 @@ This integration pulls data from [EasyLog Cloud](https://easylogcloud.com) via w
 
 ### Via HACS (recommended)
 
-1. Go to HACS → Integrations → "+" → Select **"EasyLog Cloud"**
-2. Restart Home Assistant
-3. Go to **Settings → Devices & Services → "+" → EasyLog Cloud**
-4. Enter your EasyLog Cloud credentials
+1. In Home Assistant, go to **HACS → Integrations → "+" → "Custom repositories"**
+2. Add this repository URL: `https://github.com/Cadabena/ha-easylog-cloud` and select **Integration** as the category
+3. After adding, search for **"EasyLog Cloud"** in HACS and install it
+4. Restart Home Assistant
+5. Go to **Settings → Devices & Services → "+" → EasyLog Cloud**
+6. Enter your EasyLog Cloud credentials
 
 ### Manual
 1. Copy this repo into `custom_components/ha-easylog-cloud` in your Home Assistant config
 2. Restart Home Assistant
-3. Follow same steps as above to add the integration
+3. Follow the same steps as above to add the integration
 
 After setup, sensors will be automatically created for each supported measurement per device.
 
