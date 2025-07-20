@@ -2,10 +2,6 @@
 from unittest.mock import patch
 
 import pytest
-from homeassistant.exceptions import ConfigEntryNotReady
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from .const import MOCK_CONFIG
 from custom_components.ha_easylog_cloud import (
     async_reload_entry,
 )
@@ -21,6 +17,10 @@ from custom_components.ha_easylog_cloud import (
 from custom_components.ha_easylog_cloud.const import (
     DOMAIN,
 )
+from homeassistant.exceptions import ConfigEntryNotReady
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from .const import MOCK_CONFIG
 
 
 # We can pass fixtures as defined in conftest.py to tell pytest to use the fixture

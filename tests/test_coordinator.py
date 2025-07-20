@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-
 from custom_components.ha_easylog_cloud.coordinator import EasylogCloudCoordinator
 
 

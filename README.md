@@ -38,6 +38,7 @@ This integration pulls data from [EasyLog Cloud](https://easylogcloud.com) via w
 6. Enter your EasyLog Cloud credentials
 
 ### Manual
+
 1. Copy this repo into `custom_components/ha-easylog-cloud` in your Home Assistant config
 2. Restart Home Assistant
 3. Follow the same steps as above to add the integration

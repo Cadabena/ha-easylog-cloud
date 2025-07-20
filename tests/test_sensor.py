@@ -1,12 +1,12 @@
 """Test Home Assistant EasyLog Cloud sensor."""
 from datetime import datetime
 
+from custom_components.ha_easylog_cloud.const import DOMAIN
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.entity import EntityCategory
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .const import MOCK_CONFIG
-from custom_components.ha_easylog_cloud.const import DOMAIN
 
 
 async def test_sensor_setup(hass):
