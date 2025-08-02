@@ -1,6 +1,6 @@
 {
-  "domain": "ha_easylog_cloud",
-  "name": "Home Assistant EasyLog Cloud",
+  "domain": "easylog_cloud",
+  "name": "EasyLog Cloud",
   "codeowners": ["@Cadabena"],
   "dependencies": [],
   "documentation": "https://github.com/Cadabena/ha-easylog-cloud",
