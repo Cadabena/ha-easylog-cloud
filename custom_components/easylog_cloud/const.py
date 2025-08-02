@@ -1,4 +1,4 @@
-DOMAIN = "ha_easylog_cloud"
+DOMAIN = "easylog_cloud"
 CONF_USERNAME = "username"
 CONF_PASSWORD = "password"
 PLATFORMS = ["sensor"]
