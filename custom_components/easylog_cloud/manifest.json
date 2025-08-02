@@ -2,11 +2,11 @@
   "domain": "easylog_cloud",
   "name": "EasyLog Cloud",
   "codeowners": ["@Cadabena"],
+  "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/Cadabena/ha-easylog-cloud",
-  "integration_type": "hub",
+  "documentation": "https://gitlab.com/Cadabena/ha-easylog-cloud",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/Cadabena/ha-easylog-cloud/issues",
-  "requirements": [],
+  "issue_tracker": "https://gitlab.com/Cadabena/ha-easylog-cloud/-/issues",
+  "requirements": ["aiohttp", "beautifulsoup4", "xmltodict"],
   "version": "1.0.0"
 }
