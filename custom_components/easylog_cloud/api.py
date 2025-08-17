@@ -193,7 +193,7 @@ class HAEasylogCloudApiClient:
         )
         for block in device_blocks:
             # Log the device block for debugging
-            _LOGGER.error("Device block: %s", block)
+            # _LOGGER.error("Device block: %s", block)
             # Now parse block as before
             parts = re.split(r",\s*\[new Channel", block, maxsplit=1)
             device_fields = re.split(r"(?<!\\),", parts[0], maxsplit=50)
