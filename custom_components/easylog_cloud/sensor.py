@@ -48,6 +48,9 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_class = self._guess_device_class(label)
         self._attr_state_class = self._guess_state_class(label)
 
+        # Store the last known good value
+        self._last_value = None
+
         # Fix humidity unit: replace %RH with % (required by HA)
         raw_unit = data.get("unit") if isinstance(data, dict) else None
         if self._attr_device_class == SensorDeviceClass.HUMIDITY and raw_unit in (
@@ -104,43 +107,58 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
         device = next(
             (d for d in self.coordinator.data if d["id"] == self.device_id), None
         )
+        value = None
         if device and self.label in device:
             try:
                 value = device[self.label]["value"]
                 _LOGGER.debug(
                     "Sensor %s.%s: fetched value %s", self.device_id, self.label, value
                 )
+                # If value is 'unknown' or None, return last known value
+                if value in (None, "unknown"):
+                    _LOGGER.debug(
+                        "Sensor %s.%s: value is unknown or None, using last known value %s",
+                        self.device_id,
+                        self.label,
+                        self._last_value,
+                    )
+                    return self._last_value
+
+                # For timestamp sensors, parse value
                 if self._attr_device_class == SensorDeviceClass.TIMESTAMP and value:
-                    # Try to parse the value to a datetime object if it's a string
                     if isinstance(value, str):
                         try:
-                            # Try ISO8601 first
                             dt = datetime.fromisoformat(value)
-                            # If it's naive, assume UTC
                             if dt.tzinfo is None:
                                 dt = dt.replace(tzinfo=timezone.utc)
+                            self._last_value = dt
                             return dt
                         except Exception:
-                            # Fallback: try known formats, or return None if parsing fails
                             _LOGGER.warning(
                                 "Failed to parse timestamp value '%s' for %s",
                                 value,
                                 self.label,
                             )
-                            return None
+                            return self._last_value
                     elif isinstance(value, datetime):
+                        self._last_value = value
                         return value
-                    # If value is not a string or datetime, return None
-                    return None
+                    return self._last_value
+
                 # For numeric sensors, ensure value is a number
                 if self._is_numeric_sensor(self.label):
                     try:
-                        return float(value)
+                        num_value = float(value)
+                        self._last_value = num_value
+                        return num_value
                     except (TypeError, ValueError):
                         _LOGGER.warning(
                             "Value for %s is not numeric: %s", self.label, value
                         )
-                        return None
+                        return self._last_value
+
+                # For all other sensors, just store and return the value
+                self._last_value = value
                 return value
             except Exception as e:
                 _LOGGER.warning(
@@ -149,13 +167,14 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                     device.get("name"),
                     e,
                 )
+                return self._last_value
         else:
             _LOGGER.debug(
                 "Sensor %s.%s: device or label not found in coordinator data",
                 self.device_id,
                 self.label,
             )
-        return None
+            return self._last_value
 
     @property
     def device_info(self):
