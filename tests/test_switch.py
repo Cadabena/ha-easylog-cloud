@@ -1,4 +1,5 @@
 """Test Home Assistant EasyLog Cloud switch."""
+
 from custom_components.ha_easylog_cloud.const import (
     DOMAIN,
 )

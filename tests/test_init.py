@@ -1,4 +1,5 @@
 """Test Home Assistant EasyLog Cloud setup process."""
+
 from unittest.mock import patch
 
 import pytest

@@ -1,4 +1,5 @@
 """Global fixtures for Home Assistant EasyLog Cloud integration."""
+
 from unittest.mock import patch
 
 import pytest

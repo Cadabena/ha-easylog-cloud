@@ -1,4 +1,5 @@
 """Test Home Assistant EasyLog Cloud sensor."""
+
 from datetime import datetime
 
 from custom_components.ha_easylog_cloud.const import DOMAIN
