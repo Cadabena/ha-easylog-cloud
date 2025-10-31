@@ -1,4 +1,4 @@
 -r requirements_dev.txt
-pytest-homeassistant-custom-component==0.12.49
+pytest-homeassistant-custom-component==0.13.291
 pytest-asyncio
 numpy
