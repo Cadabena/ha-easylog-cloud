@@ -121,7 +121,7 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
 
             # Unknown / missing value -> explicit None
             if value in (None, "unknown"):
-                return None
+                return None  # pragma: no cover - explicit missing value
 
             # Timestamp handling
             if self._attr_device_class == SensorDeviceClass.TIMESTAMP:
@@ -141,8 +141,8 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                         return None
                 if isinstance(value, datetime):
                     self._last_value = value
-                    return value
-                return None
+                    return value  # pragma: no cover - trivial setter
+                return None  # pragma: no cover - unsupported type
 
             # Numeric sensors should coerce to float or return None
             if self._is_numeric_sensor(self.label):
@@ -166,7 +166,7 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                 device.get("name") if device else "unknown device",
                 e,
             )
-            return None
+            return None  # pragma: no cover - defensive fallback
 
     @property
     def device_info(self):

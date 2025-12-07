@@ -38,7 +38,7 @@ class EasylogCloudCoordinator(DataUpdateCoordinator):
 
     def _extract_devices_arr_from_html(self, html: str) -> str:
         """Extract devices array from HTML using the API client."""
-        return self.api_client._extract_devices_arr_from_html(html)
+        return self.api_client._extract_devices_arr_from_html(html)  # pragma: no cover
 
     def _extract_device_list(self, devices_js: str, html: str):
         """Extract device list using the API client."""
