@@ -2,10 +2,11 @@
 
 from datetime import datetime
 
-from custom_components.ha_easylog_cloud.const import DOMAIN
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.entity import EntityCategory
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.ha_easylog_cloud.const import DOMAIN
 
 from .const import MOCK_CONFIG
 
@@ -745,9 +746,10 @@ def test_sensor_native_value_exception_in_value_access():
 async def test_sensor_native_value_timestamp_string_parsing_failure(hass):
     """Test sensor native_value with timestamp string parsing failure (line 104)."""
     # Create coordinator with device data
+    from homeassistant.components.sensor import SensorDeviceClass
+
     from custom_components.ha_easylog_cloud.coordinator import EasylogCloudCoordinator
     from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
-    from homeassistant.components.sensor import SensorDeviceClass
 
     coordinator = EasylogCloudCoordinator(hass, "test_user", "test_pass")
     coordinator.data = [
@@ -836,8 +838,9 @@ async def test_sensor_native_value_numeric_sensor_conversion_failure(hass):
 
 def test_sensor_native_value_timestamp_parsing_failure_specific():
     """Test sensor native_value with timestamp parsing failure specifically for line 104."""
-    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
     from homeassistant.components.sensor import SensorDeviceClass
+
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
 
     # Create a mock coordinator with device data
     mock_coordinator = type(
@@ -946,8 +949,9 @@ def test_sensor_native_value_numeric_sensor_conversion_failure_specific():
 
 def test_sensor_native_value_timestamp_parsing_failure_line_104():
     """Test sensor native_value with timestamp parsing failure specifically for line 104."""
-    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
     from homeassistant.components.sensor import SensorDeviceClass
+
+    from custom_components.ha_easylog_cloud.sensor import EasylogCloudSensor
 
     # Create a mock coordinator with device data
     mock_coordinator = type(

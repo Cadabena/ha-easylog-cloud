@@ -1,9 +1,10 @@
 """Test Home Assistant EasyLog Cloud switch."""
 
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from custom_components.ha_easylog_cloud.const import (
     DOMAIN,
 )
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .const import MOCK_CONFIG
 

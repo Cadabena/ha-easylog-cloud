@@ -79,9 +79,9 @@ def mock_hass_loader():
     except Exception:  # pragma: no cover – safety for CI images
         Integration = object  # fallback, not used
 
-    from custom_components.ha_easylog_cloud.const import (
+    from custom_components.ha_easylog_cloud.const import (  # lazy import to avoid circulars
         DOMAIN as INTEGRATION_DOMAIN,
-    )  # lazy import to avoid circulars
+    )
 
     fake_integration = MagicMock(spec=Integration)
     fake_integration.domain = INTEGRATION_DOMAIN

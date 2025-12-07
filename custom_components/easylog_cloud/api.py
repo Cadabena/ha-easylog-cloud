@@ -4,10 +4,10 @@ import datetime
 import logging
 import re
 
-import xmltodict
 from bs4 import BeautifulSoup
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import dt as dt_util
+import xmltodict
 
 _LOGGER = logging.getLogger(__name__)
 

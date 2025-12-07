@@ -2,24 +2,19 @@
 
 from unittest.mock import patch
 
+from homeassistant.exceptions import ConfigEntryNotReady
 import pytest
-from custom_components.ha_easylog_cloud import (
-    async_reload_entry,
-)
-from custom_components.ha_easylog_cloud import (
-    async_setup_entry,
-)
-from custom_components.ha_easylog_cloud import (
-    async_unload_entry,
-)
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from custom_components.ha_easylog_cloud import (
     HAEasylogCloudDataUpdateCoordinator,
+    async_reload_entry,
+    async_setup_entry,
+    async_unload_entry,
 )
 from custom_components.ha_easylog_cloud.const import (
     DOMAIN,
 )
-from homeassistant.exceptions import ConfigEntryNotReady
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .const import MOCK_CONFIG
 

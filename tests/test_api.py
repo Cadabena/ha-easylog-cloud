@@ -1,10 +1,9 @@
 """Tests for Home Assistant EasyLog Cloud api."""
 
-from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
 from custom_components.ha_easylog_cloud.api import (
     HAEasylogCloudApiClient,
 )

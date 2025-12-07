@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import logging
 
-import voluptuous as vol
 from homeassistant import config_entries
+import voluptuous as vol
 
-from .api import (
+from .api import (  # noqa: E402  (import after top-level for tests)
     HAEasylogCloudApiClient,
-)  # noqa: E402  (import after top-level for tests)
-from .const import CONF_PASSWORD
-from .const import CONF_USERNAME
-from .const import DOMAIN
+)
+from .const import CONF_PASSWORD, CONF_USERNAME, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 

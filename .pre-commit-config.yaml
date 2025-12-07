@@ -8,6 +8,16 @@ repos:
       - id: trailing-whitespace
   - repo: local
     hooks:
+      - id: isort
+        name: isort
+        entry: isort
+        language: system
+        types:
+          - python
+        args:
+          - --profile=black
+          - --project=custom_components
+        require_serial: true
       - id: black
         name: black
         entry: black
@@ -22,14 +32,6 @@ repos:
         types:
           - python
         require_serial: true
-      - id: reorder-python-imports
-        name: Reorder python imports
-        entry: reorder-python-imports
-        language: system
-        types:
-          - python
-        args:
-          - --application-directories=custom_components
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.2.1
     hooks:

@@ -2,8 +2,6 @@
 
 from custom_components.ha_easylog_cloud.const import (
     CONF_PASSWORD,
-)
-from custom_components.ha_easylog_cloud.const import (
     CONF_USERNAME,
 )
 

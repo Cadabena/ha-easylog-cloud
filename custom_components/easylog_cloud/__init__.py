@@ -5,8 +5,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
-from .const import PLATFORMS
+from .const import DOMAIN, PLATFORMS
 from .coordinator import EasylogCloudCoordinator
 
 _LOGGER = logging.getLogger(__name__)

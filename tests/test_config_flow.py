@@ -1,16 +1,17 @@
 """Tests for the EasylogCloud config flow."""
 
-from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
-from custom_components.ha_easylog_cloud.const import CONF_PASSWORD
-from custom_components.ha_easylog_cloud.const import CONF_USERNAME
-from custom_components.ha_easylog_cloud.const import DOMAIN
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+
+from custom_components.ha_easylog_cloud.config_flow import EasylogCloudConfigFlow
+from custom_components.ha_easylog_cloud.const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    DOMAIN,
+)
 
 
 async def test_flow_user(hass: HomeAssistant) -> None:
