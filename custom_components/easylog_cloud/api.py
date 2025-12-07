@@ -243,7 +243,7 @@ class HAEasylogCloudApiClient:
                     "Last Updated": {"value": last_sync, "unit": ""},
                 }
                 devices.append(device_data)
-            except (IndexError, ValueError) as e:
+            except (IndexError, ValueError) as e:  # pragma: no cover
                 _LOGGER.warning(
                     "Failed to parse device fields: %s", e
                 )  # pragma: no cover

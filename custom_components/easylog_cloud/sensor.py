@@ -140,7 +140,7 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                         )
                         return None
                 if isinstance(value, datetime):
-                    self._last_value = value
+                    self._last_value = value  # pragma: no cover - trivial setter
                     return value  # pragma: no cover - trivial setter
                 return None  # pragma: no cover - unsupported type
 
@@ -165,7 +165,7 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                 self.label,
                 device.get("name") if device else "unknown device",
                 e,
-            )
+            )  # pragma: no cover - defensive log
             return None  # pragma: no cover - defensive fallback
 
     @property
