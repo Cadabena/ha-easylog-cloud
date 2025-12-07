@@ -105,74 +105,68 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
         device = next(
             (d for d in self.coordinator.data if d["id"] == self.device_id), None
         )
-        value = None
-        if device and self.label in device:
-            try:
-                value = device[self.label]["value"]
-                _LOGGER.debug(
-                    "Sensor %s.%s: fetched value %s", self.device_id, self.label, value
-                )
-                # If value is 'unknown' or None, return last known value
-                if value in (None, "unknown"):
-                    _LOGGER.debug(
-                        "Sensor %s.%s: value is unknown or None, using last known value %s",
-                        self.device_id,
-                        self.label,
-                        self._last_value,
-                    )
-                    return self._last_value
-
-                # For timestamp sensors, parse value
-                if self._attr_device_class == SensorDeviceClass.TIMESTAMP and value:
-                    if isinstance(value, str):
-                        try:
-                            dt = datetime.fromisoformat(value)
-                            if dt.tzinfo is None:
-                                dt = dt.replace(tzinfo=timezone.utc)
-                            self._last_value = dt
-                            return dt
-                        except Exception:
-                            _LOGGER.warning(
-                                "Failed to parse timestamp value '%s' for %s",
-                                value,
-                                self.label,
-                            )
-                            return self._last_value
-                    elif isinstance(value, datetime):
-                        self._last_value = value
-                        return value
-                    return self._last_value
-
-                # For numeric sensors, ensure value is a number
-                if self._is_numeric_sensor(self.label):
-                    try:
-                        num_value = float(value)
-                        self._last_value = num_value
-                        return num_value
-                    except (TypeError, ValueError):
-                        _LOGGER.warning(
-                            "Value for %s is not numeric: %s", self.label, value
-                        )
-                        return self._last_value
-
-                # For all other sensors, just store and return the value
-                self._last_value = value
-                return value
-            except Exception as e:
-                _LOGGER.warning(
-                    "native_value error for %s on %s: %s",
-                    self.label,
-                    device.get("name"),
-                    e,
-                )
-                return self._last_value
-        else:
+        if not device or self.label not in device:
             _LOGGER.debug(
                 "Sensor %s.%s: device or label not found in coordinator data",
                 self.device_id,
                 self.label,
             )
-            return self._last_value
+            return None
+
+        try:
+            value = device[self.label]["value"]
+            _LOGGER.debug(
+                "Sensor %s.%s: fetched value %s", self.device_id, self.label, value
+            )
+
+            # Unknown / missing value -> explicit None
+            if value in (None, "unknown"):
+                return None
+
+            # Timestamp handling
+            if self._attr_device_class == SensorDeviceClass.TIMESTAMP:
+                if isinstance(value, str):
+                    try:
+                        dt = datetime.fromisoformat(value)
+                        if dt.tzinfo is None:
+                            dt = dt.replace(tzinfo=timezone.utc)
+                        self._last_value = dt
+                        return dt
+                    except Exception:
+                        _LOGGER.warning(
+                            "Failed to parse timestamp value '%s' for %s",
+                            value,
+                            self.label,
+                        )
+                        return None
+                if isinstance(value, datetime):
+                    self._last_value = value
+                    return value
+                return None
+
+            # Numeric sensors should coerce to float or return None
+            if self._is_numeric_sensor(self.label):
+                try:
+                    num_value = float(value)
+                    self._last_value = num_value
+                    return num_value
+                except (TypeError, ValueError):
+                    _LOGGER.warning(
+                        "Value for %s is not numeric: %s", self.label, value
+                    )
+                    return None
+
+            # For all other sensors, just store and return the value
+            self._last_value = value
+            return value
+        except Exception as e:
+            _LOGGER.warning(
+                "native_value error for %s on %s: %s",
+                self.label,
+                device.get("name") if device else "unknown device",
+                e,
+            )
+            return None
 
     @property
     def device_info(self):
