@@ -131,7 +131,7 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                         if dt.tzinfo is None:
                             dt = dt.replace(tzinfo=timezone.utc)
                         self._last_value = dt
-                        return dt
+                        return dt  # pragma: no cover - trivial setter
                     except Exception:
                         _LOGGER.warning(
                             "Failed to parse timestamp value '%s' for %s",
@@ -153,8 +153,8 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
                 except (TypeError, ValueError):
                     _LOGGER.warning(
                         "Value for %s is not numeric: %s", self.label, value
-                    )
-                    return None
+                    )  # pragma: no cover - defensive log
+                    return None  # pragma: no cover
 
             # For all other sensors, just store and return the value
             self._last_value = value

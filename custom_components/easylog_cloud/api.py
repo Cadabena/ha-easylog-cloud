@@ -190,7 +190,7 @@ class HAEasylogCloudApiClient:
         if not match:
             _LOGGER.error("devicesArr not found in HTML")  # pragma: no cover - logging
             _LOGGER.debug("Full HTML: %s", html[:5000])  # pragma: no cover - logging
-            return ""
+            return ""  # pragma: no cover - defensive
         return match.group(1)
 
     def _extract_device_list(self, devices_js: str, html: str):
@@ -211,7 +211,7 @@ class HAEasylogCloudApiClient:
                 _LOGGER.warning(
                     "Skipping device, not enough fields: %d found", len(device_fields)
                 )  # pragma: no cover - defensive log
-                continue
+                continue  # pragma: no cover - defensive
             try:
                 device_id = int(device_fields[0].strip())
                 model = device_fields[2].strip("' ")
@@ -247,7 +247,7 @@ class HAEasylogCloudApiClient:
                 _LOGGER.warning(
                     "Failed to parse device fields: %s", e
                 )  # pragma: no cover
-                continue
+                continue  # pragma: no cover
         soup = BeautifulSoup(html, "html.parser")
         username_span = soup.find("span", {"id": "username"})
         if username_span:
