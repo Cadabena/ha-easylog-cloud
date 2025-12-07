@@ -159,7 +159,7 @@ class EasylogCloudSensor(CoordinatorEntity, SensorEntity):
             # For all other sensors, just store and return the value
             self._last_value = value
             return value  # pragma: no cover - passthrough
-        except Exception as e:
+        except Exception as e:  # pragma: no cover - defensive
             _LOGGER.warning(
                 "native_value error for %s on %s: %s",
                 self.label,
