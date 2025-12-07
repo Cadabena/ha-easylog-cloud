@@ -2,6 +2,6 @@
   "name": "EasyLog Cloud",
   "content_in_root": false,
   "render_readme": true,
-  "filename": "custom_components/ha_easylog_cloud/manifest.json",
+  "filename": "custom_components/easylog_cloud/manifest.json",
   "homeassistant": "2024.1.0"
 }

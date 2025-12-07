@@ -1,8 +1,16 @@
 """Global fixtures for Home Assistant EasyLog Cloud integration."""
 
+import os
+import sys
 from unittest.mock import patch
 
 import pytest
+
+# Ensure `custom_components` is importable when running tests directly.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+CUSTOM_COMPONENTS = os.path.join(PROJECT_ROOT, "custom_components")
+if CUSTOM_COMPONENTS not in sys.path:
+    sys.path.insert(0, CUSTOM_COMPONENTS)
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -25,7 +33,7 @@ def skip_notifications_fixture():
 def bypass_get_data_fixture():
     """Skip calls to get data from API."""
     with patch(
-        "custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient.async_get_devices_data"
+        "custom_components.easylog_cloud.api.HAEasylogCloudApiClient.async_get_devices_data"
     ):
         yield
 
@@ -36,7 +44,7 @@ def bypass_get_data_fixture():
 def error_get_data_fixture():
     """Simulate error when retrieving data from API."""
     with patch(
-        "custom_components.ha_easylog_cloud.api.HAEasylogCloudApiClient.async_get_devices_data",
+        "custom_components.easylog_cloud.api.HAEasylogCloudApiClient.async_get_devices_data",
         side_effect=Exception,
     ):
         yield
@@ -57,7 +65,7 @@ async def mock_hass_aiohttp_fixture():
     async_mock_session = AsyncMock()
 
     with patch(
-        "custom_components.ha_easylog_cloud.api.async_get_clientsession",
+        "custom_components.easylog_cloud.api.async_get_clientsession",
         return_value=async_mock_session,
     ):
         yield
@@ -79,7 +87,7 @@ def mock_hass_loader():
     except Exception:  # pragma: no cover – safety for CI images
         Integration = object  # fallback, not used
 
-    from custom_components.ha_easylog_cloud.const import (  # lazy import to avoid circulars
+    from custom_components.easylog_cloud.const import (  # lazy import to avoid circulars
         DOMAIN as INTEGRATION_DOMAIN,
     )
 
@@ -99,5 +107,5 @@ def mock_hass_loader():
         # Ensure the config_flow module is imported so its handler registers with HA
         import importlib
 
-        importlib.import_module("custom_components.ha_easylog_cloud.config_flow")
+        importlib.import_module("custom_components.easylog_cloud.config_flow")
         yield

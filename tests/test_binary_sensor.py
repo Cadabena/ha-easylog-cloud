@@ -3,14 +3,14 @@
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.ha_easylog_cloud.const import DOMAIN
+from custom_components.easylog_cloud.const import DOMAIN
 
 from .const import MOCK_CONFIG
 
 
 async def test_binary_sensor_setup(hass):
     """Test binary sensor setup."""
-    from custom_components.ha_easylog_cloud.binary_sensor import async_setup_entry
+    from custom_components.easylog_cloud.binary_sensor import async_setup_entry
 
     # Create a mock entry
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
@@ -83,7 +83,7 @@ async def test_binary_sensor_setup(hass):
 
 def test_is_binary_function():
     """Test the _is_binary helper function."""
-    from custom_components.ha_easylog_cloud.binary_sensor import _is_binary
+    from custom_components.easylog_cloud.binary_sensor import _is_binary
 
     # Test string values
     assert _is_binary({"value": "true"}) is True
@@ -114,7 +114,7 @@ def test_is_binary_function():
 
 def test_is_binary_exception_handling():
     """Test _is_binary function with exception handling."""
-    from custom_components.ha_easylog_cloud.binary_sensor import _is_binary
+    from custom_components.easylog_cloud.binary_sensor import _is_binary
 
     # Test with data that causes exception when accessing .get()
     class MockData:
@@ -127,7 +127,7 @@ def test_is_binary_exception_handling():
 
 def test_device_class_guessing():
     """Test device class guessing logic."""
-    from custom_components.ha_easylog_cloud.binary_sensor import (
+    from custom_components.easylog_cloud.binary_sensor import (
         EasylogCloudBinarySensor,
     )
 
@@ -174,7 +174,7 @@ def test_device_class_guessing():
 
 def test_binary_sensor_is_on_property():
     """Test the is_on property of binary sensors."""
-    from custom_components.ha_easylog_cloud.binary_sensor import (
+    from custom_components.easylog_cloud.binary_sensor import (
         EasylogCloudBinarySensor,
     )
 
@@ -234,7 +234,7 @@ def test_binary_sensor_is_on_property():
 
 def test_binary_sensor_device_info():
     """Test the device_info property of binary sensors."""
-    from custom_components.ha_easylog_cloud.binary_sensor import (
+    from custom_components.easylog_cloud.binary_sensor import (
         EasylogCloudBinarySensor,
     )
 
@@ -252,7 +252,7 @@ def test_binary_sensor_device_info():
 
 async def test_binary_sensor_with_coordinator_updates(hass):
     """Test binary sensor behavior with coordinator updates."""
-    from custom_components.ha_easylog_cloud.binary_sensor import (
+    from custom_components.easylog_cloud.binary_sensor import (
         EasylogCloudBinarySensor,
     )
 

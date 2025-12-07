@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.ha_easylog_cloud.api import (
+from custom_components.easylog_cloud.api import (
     HAEasylogCloudApiClient,
 )
 
@@ -13,7 +13,7 @@ from custom_components.ha_easylog_cloud.api import (
 def mock_session():
     """Mock aiohttp session used by the API client."""
     with patch(
-        "custom_components.ha_easylog_cloud.api.async_get_clientsession"
+        "custom_components.easylog_cloud.api.async_get_clientsession"
     ) as mock_get_session:
         session = AsyncMock()
         mock_get_session.return_value = session

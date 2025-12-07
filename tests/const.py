@@ -1,6 +1,6 @@
 """Constants for Home Assistant EasyLog Cloud tests."""
 
-from custom_components.ha_easylog_cloud.const import (
+from custom_components.easylog_cloud.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
 )

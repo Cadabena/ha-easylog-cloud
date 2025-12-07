@@ -2,7 +2,7 @@
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.ha_easylog_cloud.const import (
+from custom_components.easylog_cloud.const import (
     DOMAIN,
 )
 
@@ -31,14 +31,14 @@ async def test_switch_services(hass):
     )()
 
     # Test that the switch setup works
-    from custom_components.ha_easylog_cloud.switch import async_setup_entry
+    from custom_components.easylog_cloud.switch import async_setup_entry
 
     await async_setup_entry(hass, config_entry, lambda entities: None)
 
 
 async def test_switch_turn_on_off(hass):
     """Directly test EasylogCloudSwitch on/off helpers."""
-    from custom_components.ha_easylog_cloud.switch import EasylogCloudSwitch
+    from custom_components.easylog_cloud.switch import EasylogCloudSwitch
 
     # Dummy coordinator not used in logic
     mock_coordinator = type(
@@ -71,7 +71,7 @@ async def test_switch_turn_on_off(hass):
 
 def test_switch_device_info():
     """Test switch device_info property."""
-    from custom_components.ha_easylog_cloud.switch import EasylogCloudSwitch
+    from custom_components.easylog_cloud.switch import EasylogCloudSwitch
 
     # Create a mock coordinator
     mock_coordinator = type("MockCoordinator", (), {})()

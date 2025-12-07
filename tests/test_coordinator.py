@@ -4,14 +4,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.ha_easylog_cloud.coordinator import EasylogCloudCoordinator
+from custom_components.easylog_cloud.coordinator import EasylogCloudCoordinator
 
 
 @pytest.fixture
 def mock_session():
     """Mock aiohttp session."""
     with patch(
-        "custom_components.ha_easylog_cloud.api.async_get_clientsession"
+        "custom_components.easylog_cloud.api.async_get_clientsession"
     ) as mock:
         session = AsyncMock()
         mock.return_value = session

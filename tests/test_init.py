@@ -6,13 +6,13 @@ from homeassistant.exceptions import ConfigEntryNotReady
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.ha_easylog_cloud import (
+from custom_components.easylog_cloud import (
     HAEasylogCloudDataUpdateCoordinator,
     async_reload_entry,
     async_setup_entry,
     async_unload_entry,
 )
-from custom_components.ha_easylog_cloud.const import (
+from custom_components.easylog_cloud.const import (
     DOMAIN,
 )
 
@@ -57,7 +57,7 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
         ):
             # Set up the entry and assert that the values set during setup are where we expect
             # them to be. Because we have patched the HAEasylogCloudDataUpdateCoordinator.async_get_devices_data
-            # call, no code from custom_components/ha_easylog_cloud/api.py actually runs.
+            # call, no code from custom_components/easylog_cloud/api.py actually runs.
             assert await async_setup_entry(hass, config_entry)
             assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
             assert isinstance(
@@ -91,7 +91,7 @@ async def test_setup_entry_exception(hass, error_on_get_data):
 
 async def test_async_setup(hass):
     """Test async_setup function."""
-    from custom_components.ha_easylog_cloud import async_setup
+    from custom_components.easylog_cloud import async_setup
 
     # Test that async_setup initializes the domain in hass.data
     result = await async_setup(hass, {})
