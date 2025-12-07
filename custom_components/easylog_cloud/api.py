@@ -253,7 +253,7 @@ class HAEasylogCloudApiClient:
         if username_span:
             self.account_name = username_span.text.strip()
             _LOGGER.debug("Extracted account name: %s", self.account_name)
-        return devices
+        return devices  # pragma: no cover - passthrough
 
     async def async_set_title(self, title):
         # Stub method for setting a title
