@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "EasyLog Cloud",
-        "description": "Hvis du trenger hjep til konfigurasjon ta en titt her: https://github.com/Cadabena/ha-easylog-cloud",
+        "description": "Vennligst skriv inn EasyLog Cloud-påloggingsinformasjonen din.",
         "data": {
           "username": "Brukernavn",
           "password": "Passord"
