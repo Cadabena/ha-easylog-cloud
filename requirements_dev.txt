@@ -6,4 +6,4 @@ black
 isort
 flake8
 click<23.0
-PyYAML>=6.0,<7.0
+PyYAML>=6.0.3,<7.0
