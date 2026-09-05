@@ -3,3 +3,7 @@ pytest-homeassistant-custom-component==0.13.45
 josepy>=1.14.0
 pytest-asyncio
 numpy
+# homeassistant==2023.7.3 pins httpx==0.24.1 -> httpcore==0.17.3, which accesses
+# anyio.abc at import time without importing it explicitly. anyio>=4 no longer
+# eagerly re-exports that submodule, breaking the import; pin below anyio 4.
+anyio<4
