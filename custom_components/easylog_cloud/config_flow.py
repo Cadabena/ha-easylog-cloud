@@ -16,13 +16,13 @@ _LOGGER = logging.getLogger(__name__)
 class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
-    def __init__(self):
-        self._errors = {}
-
     async def async_step_user(self, user_input=None):
-        self._errors = {}
+        errors: dict[str, str] = {}
 
         if user_input is not None:
+            await self.async_set_unique_id(user_input[CONF_USERNAME])
+            self._abort_if_unique_id_configured()
+
             valid, name = await self._test_credentials(
                 user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
             )
@@ -32,11 +32,11 @@ class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data=user_input,
                 )
             else:
-                self._errors["base"] = "auth"
+                errors["base"] = "auth"
 
-        return await self._show_config_form(user_input)
+        return await self._show_config_form(user_input, errors)
 
-    async def _show_config_form(self, user_input):
+    async def _show_config_form(self, user_input, errors):
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
@@ -45,7 +45,7 @@ class EasylogCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_PASSWORD): str,
                 }
             ),
-            errors=self._errors,
+            errors=errors,
         )
 
     async def _test_credentials(

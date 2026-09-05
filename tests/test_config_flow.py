@@ -299,9 +299,10 @@ async def test_show_form(hass: HomeAssistant) -> None:
     """Test _show_config_form method."""
     flow = EasylogCloudConfigFlow()
     flow.hass = hass
-    flow._errors = {"base": "auth"}
 
-    result = await flow._show_config_form({CONF_USERNAME: "test@example.com"})
+    result = await flow._show_config_form(
+        {CONF_USERNAME: "test@example.com"}, {"base": "auth"}
+    )
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "user"
