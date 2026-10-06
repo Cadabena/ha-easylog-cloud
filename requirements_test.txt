@@ -1,6 +1,6 @@
 -r requirements_dev.txt
 pytest-homeassistant-custom-component==0.13.45
-josepy>=1.14.0
+josepy>=2.2.0
 pytest-asyncio
 numpy
 # homeassistant==2023.7.3 pins httpx==0.24.1 -> httpcore==0.17.3, which accesses
